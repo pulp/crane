@@ -1,6 +1,12 @@
 crane
 =====
 
+.. image:: https://travis-ci.org/pulp/crane.svg?branch=master
+   :target: https://travis-ci.org/pulp/crane
+
+.. image:: https://coveralls.io/repos/pulp/crane/badge.png?branch=master
+   :target: https://coveralls.io/r/pulp/crane?branch=master
+
 Configuration
 -------------
 

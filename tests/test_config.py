@@ -1,14 +1,9 @@
-import os
 import unittest
 
 import mock
 
 from crane import config
-
-demo_config_path = os.path.join(
-    os.path.dirname(__file__),
-    'data/demo_config.conf'
-)
+import demo_data
 
 
 class TestLoad(unittest.TestCase):
@@ -35,7 +30,7 @@ class TestLoad(unittest.TestCase):
         """
         self.assertRaises(IOError, config.load, self.app)
 
-    @mock.patch('os.environ.get', return_value=demo_config_path, spec_set=True)
+    @mock.patch('os.environ.get', return_value=demo_data.demo_config_path, spec_set=True)
     def test_demo_config(self, mock_get):
         config.load(self.app)
 

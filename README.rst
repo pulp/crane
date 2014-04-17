@@ -17,7 +17,12 @@ A config file will be loaded from the path found in environment variable
 All options should go under a section named ``[general]``
 
 debug
-  ``true`` or ``false``, which sets Flask's ``DEBUG`` config option.
+  ``true`` or ``false``, which sets Flask's ``DEBUG`` config option. defaults to
+  ``false``
+
+data_dir
+  full path to the directory from which metadata files should be loaded. defaults
+  to ``/var/lib/crane/metadata/``
 
 
 Example:
@@ -26,3 +31,4 @@ Example:
 
   [general]
   debug: true
+  data_dir: /mnt/nfs/

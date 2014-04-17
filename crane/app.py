@@ -1,7 +1,7 @@
 from flask import Flask
 
 from .views import v1
-from . import config
+from . import config, data
 
 
 def create_app():
@@ -14,8 +14,5 @@ def create_app():
     app = Flask(__name__)
     app.register_blueprint(v1.section)
     config.load(app)
+    data.load_all(app)
     return app
-
-
-if __name__ == '__main__': # pragma: no cover
-    create_app().run(port=5001)

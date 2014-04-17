@@ -9,8 +9,8 @@ def add_common_headers(response):
     response.headers['Content-Type'] = 'application/json'
     # current stable release of docker-registry
     response.headers['X-Docker-Registry-Version'] = '0.6.6'
-    # documented by docker-registry as a valid config, but I am just guessing
-    # that it will work
+    # "common" is documented by docker-registry as a valid config, but I am
+    # just guessing that it will work in our case.
     response.headers['X-Docker-Registry-Config'] = 'common'
     return response
 

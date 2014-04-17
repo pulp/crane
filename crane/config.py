@@ -20,12 +20,13 @@ def load(app):
     :param app: a flask app
     :type  app: Flask
 
-    :raises:    IOError iff a non-default config path is specified but does not exist
+    :raises IOError: iff a non-default config path is specified but does not exist
     """
     config_path = os.environ.get('CRANE_CONFIG_PATH') or DEFAULT_CONFIG_PATH
     parser = ConfigParser(defaults=config_defaults)
     try:
-        parser.readfp(open(config_path))
+        with open(config_path) as config_file:
+            parser.readfp(config_file)
         logger.info('config loaded from %s' % config_path)
     except IOError:
         if config_path != DEFAULT_CONFIG_PATH:

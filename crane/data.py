@@ -38,9 +38,9 @@ def load_from_file(path):
     if repo_data['version'] != 1:
         raise ValueError('metadata version %d not supported' % repo_data['version'])
 
-    repo_id = repo_data['repository']
+    repo_id = repo_data['repo-registry-id']
     image_ids = [image['id'] for image in repo_data['images']]
-    repo_tuple = Repo(repo_data['url'], json.dumps(image_ids), json.dumps(repo_data['tags']))
+    repo_tuple = Repo(repo_data['url'], json.dumps(repo_data['images']), json.dumps(repo_data['tags']))
 
     return repo_id, repo_tuple, image_ids
 

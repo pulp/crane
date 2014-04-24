@@ -9,12 +9,16 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG_PATH = '/etc/crane.conf'
 CONFIG_ENV_NAME = 'CRANE_CONFIG_PATH'
 
+SECTION_GENERAL = 'general'
+
 KEY_DEBUG = 'debug'
 KEY_DATA_DIR = 'data_dir'
+KEY_ENDPOINT = 'endpoint'
 
 config_defaults = {
     KEY_DEBUG: 'false',
     KEY_DATA_DIR: '/var/lib/crane/metadata/',
+    KEY_ENDPOINT: 'localhost:5000'
 }
 
 
@@ -42,8 +46,9 @@ def load(app):
         logger.info('no config specified or found, so using defaults')
 
     # adding the empty section will allow defaults to be used below
-    if not parser.has_section('general'):
-        parser.add_section('general')
+    if not parser.has_section(SECTION_GENERAL):
+        parser.add_section(SECTION_GENERAL)
 
-    app.config['DEBUG'] = parser.getboolean('general', KEY_DEBUG)
-    app.config[KEY_DATA_DIR] = parser.get('general', KEY_DATA_DIR)
+    app.config['DEBUG'] = parser.getboolean(SECTION_GENERAL, KEY_DEBUG)
+    app.config[KEY_DATA_DIR] = parser.get(SECTION_GENERAL, KEY_DATA_DIR)
+    app.config[KEY_ENDPOINT] = parser.get(SECTION_GENERAL, KEY_ENDPOINT)

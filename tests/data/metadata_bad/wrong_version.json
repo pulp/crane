@@ -8,6 +8,7 @@
         }
     ],
     "repository": "foo",
+    "repo-registry-id": "redhat/foo",
     "tags": {
         "latest": "abc123"
     },

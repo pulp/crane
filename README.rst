@@ -24,6 +24,11 @@ data_dir
   full path to the directory from which metadata files should be loaded. defaults
   to ``/var/lib/crane/metadata/``
 
+endpoint
+  hostname and optional port, in the form ``hostname:port``, where crane
+  is deployed. This is the value that will be returned for the
+  ``X-Docker-Endpoint`` header. defaults to ``localhost:5000``
+
 
 Example:
 
@@ -32,3 +37,4 @@ Example:
   [general]
   debug: true
   data_dir: /mnt/nfs/
+  endpoint: localhost:5000

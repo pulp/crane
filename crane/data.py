@@ -5,6 +5,8 @@ import os
 
 from flask import json
 
+from . import config
+
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +59,7 @@ def load_all(app):
     images = {}
 
     try:
-        data_dir = app.config['data_dir']
+        data_dir = app.config[config.KEY_DATA_DIR]
         logging.info('loading metadata from %s' % data_dir)
         paths = glob.glob(os.path.join(data_dir, '*.json'))
 

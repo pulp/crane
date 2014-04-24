@@ -3,7 +3,7 @@ import os
 import unittest
 
 import crane.app
-from crane import data
+from crane import config, data
 
 
 metadata_good_path = os.path.join(os.path.dirname(__file__), '../data/metadata_good/')
@@ -12,7 +12,7 @@ metadata_good_path = os.path.join(os.path.dirname(__file__), '../data/metadata_g
 class TestRepository(unittest.TestCase):
     def setUp(self):
         self.app = crane.app.create_app()
-        self.app.config['data_dir'] = metadata_good_path
+        self.app.config[config.KEY_DATA_DIR] = metadata_good_path
         data.load_all(self.app)
         self.test_client = self.app.test_client()
 

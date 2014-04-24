@@ -3,7 +3,7 @@ import unittest
 from flask import Flask
 import mock
 
-from crane import app
+from crane import app, config
 from crane.views import v1
 import demo_data
 
@@ -18,7 +18,7 @@ class TestCreateApp(unittest.TestCase):
     def test_loads_config(self, mock_environ_get):
         ret = app.create_app()
 
-        self.assertTrue('data_dir' in ret.config)
+        self.assertTrue(config.KEY_DATA_DIR in ret.config)
 
     def test_blueprints_loaded(self, mock_environ_get):
         ret = app.create_app()

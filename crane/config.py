@@ -9,9 +9,12 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG_PATH = '/etc/crane.conf'
 CONFIG_ENV_NAME = 'CRANE_CONFIG_PATH'
 
+KEY_DEBUG = 'debug'
+KEY_DATA_DIR = 'data_dir'
+
 config_defaults = {
-    'debug': 'false',
-    'data_dir': '/var/lib/crane/metadata/',
+    KEY_DEBUG: 'false',
+    KEY_DATA_DIR: '/var/lib/crane/metadata/',
 }
 
 
@@ -42,5 +45,5 @@ def load(app):
     if not parser.has_section('general'):
         parser.add_section('general')
 
-    app.config['DEBUG'] = parser.getboolean('general', 'debug')
-    app.config['data_dir'] = parser.get('general', 'data_dir')
+    app.config['DEBUG'] = parser.getboolean('general', KEY_DEBUG)
+    app.config[KEY_DATA_DIR] = parser.get('general', KEY_DATA_DIR)

@@ -1,0 +1,16 @@
+{
+    "images": [
+        {
+            "id": "abc123"
+        },
+        {
+            "id": "xyz789"
+        }
+    ],
+    "repository": "foo",
+    "tags": {
+        "latest": "abc123"
+    },
+    "url": "http://cdn.redhat.com/foo/bar/images/",
+    "version": -1
+}

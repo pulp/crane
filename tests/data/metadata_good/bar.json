@@ -1,0 +1,14 @@
+{
+    "images": [
+        {
+            "id": "def456"
+        }
+    ],
+    "repository": "bar",
+    "repo-registry-id": "bar",
+    "tags": {
+        "latest": "def456"
+    },
+    "url": "http://cdn.redhat.com/bar/baz/images",
+    "version": 1
+}

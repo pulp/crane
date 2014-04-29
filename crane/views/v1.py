@@ -1,9 +1,15 @@
-from flask import abort, Blueprint, json, current_app
+import urlparse
+
+from flask import abort, Blueprint, json, current_app, redirect
 
 from .. import data
+from crane import config
 
 
 section = Blueprint('v1', __name__, url_prefix='/v1')
+
+
+VALID_IMAGE_FILES = frozenset(['ancestry', 'json', 'layer'])
 
 
 @section.after_request
@@ -42,37 +48,92 @@ def ping():
     return response
 
 
-@section.route('/repositories/<repo_id>/images')
+@section.route('/repositories/<path:repo_id>/images')
 def repo_images(repo_id):
     """
     Returns a json document containing a list of image IDs that are in the
     repository with the given repo_id.
 
-    :param repo_id: unique ID for the repository
+    Adds the "X-Docker-Endpoints" header.
+
+    :param repo_id: unique ID for the repository. May contain 0 or 1 of the "/"
+                    character.
     :type  repo_id: basestring
 
     :return:    json string containing a list of image IDs
     :rtype:     basestring
     """
+    # a valid repository ID will have zero or one slash
+    if len(repo_id.split('/')) > 2:
+        abort(404)
     try:
-        return data.response_data['repos'][repo_id].images_json
+        response = current_app.make_response(data.response_data['repos'][repo_id].images_json)
+        response.headers['X-Docker-Endpoints'] = current_app.config.get(config.KEY_ENDPOINT)
+        return response
     except KeyError:
         abort(404)
 
 
-@section.route('/repositories/<repo_id>/tags')
+@section.route('/repositories/<path:repo_id>/tags')
 def repo_tags(repo_id):
     """
     Returns a json document containing an object that maps tag names to image
     IDs.
 
-    :param repo_id: unique ID for the repository
+    :param repo_id: unique ID for the repository. May contain 0 or 1 of the "/"
+                    character. For repo IDs that do not contain a slash, the
+                    docker client currently prepends "library/" when making
+                    this call. This function strips that off.
     :type  repo_id: basestring
 
     :return:    json string containing an object mapping tag names to image IDs
     :rtype:     basestring
     """
+    # a valid repository ID will have zero or one slash
+    if len(repo_id.split('/')) > 2:
+        abort(404)
+
+    # for repositories that do not have a "/" in the name, docker will add
+    # "library/" to the beginning of the repository path only for this call.
+    if repo_id.startswith('library/'):
+        repo_id = repo_id[len('library/'):]
+
     try:
         return data.response_data['repos'][repo_id].tags_json
     except KeyError:
         abort(404)
+
+
+@section.route('/images/<image_id>/<filename>')
+def images_redirect(image_id, filename):
+    """
+    Redirects (302) the client to a path where it can access the requested file.
+
+    :param image_id:    the full unique ID of a docker image
+    :type  image_id:    basestring
+    :param filename:    one of "ancestry", "json", or "layer".
+    :type  filename:    basestring
+
+    :return:    302 redirect response
+    :rtype:     flask.Response
+    """
+    chosen_repo = None
+
+    if filename not in VALID_IMAGE_FILES:
+        abort(404)
+
+    # getting a reference up-front ensures that we will inspect only one
+    # consistent version of the data structure while handling this request.
+    response_data = data.response_data
+
+    try:
+        for repo in response_data['images'][image_id]:
+            chosen_repo = repo
+            break
+        base_url = response_data['repos'][chosen_repo].url
+    except KeyError:
+        abort(404)
+
+    if not base_url.endswith('/'):
+        base_url += '/'
+    return redirect(urlparse.urljoin(base_url, '/'.join([image_id, filename])))

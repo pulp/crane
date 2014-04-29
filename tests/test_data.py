@@ -11,12 +11,12 @@ class TestLoadFromFile(unittest.TestCase):
     def test_demo_file(self):
         repo_id, repo_tuple, image_ids = data.load_from_file(demo_data.foo_metadata_path)
 
-        self.assertEqual(repo_id, 'foo')
+        self.assertEqual(repo_id, 'redhat/foo')
         self.assertEqual(repo_tuple.url, 'http://cdn.redhat.com/foo/bar/images/')
 
         images = json.loads(repo_tuple.images_json)
-        self.assertTrue('abc123' in images)
-        self.assertTrue('xyz789' in images)
+        self.assertTrue({'id': 'abc123'} in images)
+        self.assertTrue({'id': 'xyz789'} in images)
 
         tags = json.loads(repo_tuple.tags_json)
         self.assertEqual(tags.get('latest'), 'abc123')
@@ -45,14 +45,14 @@ class TestLoadAll(unittest.TestCase):
 
         # verify that images data is correct
         self.assertTrue('abc123' in data.response_data['images'])
-        self.assertEqual(data.response_data['images']['abc123'], frozenset(['foo']))
+        self.assertEqual(data.response_data['images']['abc123'], frozenset(['redhat/foo']))
         self.assertTrue('xyz789' in data.response_data['images'])
-        self.assertEqual(data.response_data['images']['xyz789'], frozenset(['foo']))
+        self.assertEqual(data.response_data['images']['xyz789'], frozenset(['redhat/foo']))
 
         # make sure the Repo namedtuple is in the right place
-        self.assertTrue(isinstance(data.response_data['repos'].get('foo'), data.Repo))
+        self.assertTrue(isinstance(data.response_data['repos'].get('redhat/foo'), data.Repo))
         # spot-check a value
-        self.assertEqual(data.response_data['repos'].get('foo').url,
+        self.assertEqual(data.response_data['repos'].get('redhat/foo').url,
                          'http://cdn.redhat.com/foo/bar/images/')
 
     @mock.patch.object(data.logger, 'error', spec_set=True)

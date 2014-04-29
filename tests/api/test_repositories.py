@@ -1,39 +1,37 @@
 import json
-import os
-import unittest
 
-import crane.app
-from crane import config, data
+import base
 
 
-metadata_good_path = os.path.join(os.path.dirname(__file__), '../data/metadata_good/')
 
-
-class TestRepository(unittest.TestCase):
-    def setUp(self):
-        self.app = crane.app.create_app()
-        self.app.config[config.KEY_DATA_DIR] = metadata_good_path
-        data.load_all(self.app)
-        self.test_client = self.app.test_client()
-
-    def tearDown(self):
-        """
-        reset response data
-        """
-        data.response_data = {
-            'repos': {},
-            'images': {},
-        }
-
+class TestRepository(base.BaseCraneAPITest):
     def test_images(self):
-        response = self.test_client.get('/v1/repositories/foo/images')
+        response = self.test_client.get('/v1/repositories/redhat/foo/images')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['Content-Type'], 'application/json')
         self.assertEqual(response.headers['X-Docker-Registry-Config'], 'common')
         self.assertEqual(response.headers['X-Docker-Registry-Version'], '0.6.6')
+        self.assertEqual(response.headers['X-Docker-Endpoints'], 'localhost:5000')
 
-        self.assertEqual(json.loads(response.data), ['abc123', 'xyz789'])
+        response_data = json.loads(response.data)
+        self.assertTrue({'id': 'abc123'} in response_data)
+        self.assertTrue({'id': 'xyz789'} in response_data)
+
+    def test_images_no_namespace(self):
+        """
+        The "bar" repository ID does not have a namespace
+        """
+        response = self.test_client.get('/v1/repositories/bar/images')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+        self.assertEqual(response.headers['X-Docker-Registry-Config'], 'common')
+        self.assertEqual(response.headers['X-Docker-Registry-Version'], '0.6.6')
+        self.assertEqual(response.headers['X-Docker-Endpoints'], 'localhost:5000')
+
+        response_data = json.loads(response.data)
+        self.assertTrue({'id': 'def456'} in response_data)
 
     def test_images_404(self):
         response = self.test_client.get('/v1/repositories/idontexist/images')
@@ -41,8 +39,17 @@ class TestRepository(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.headers['Content-Type'], 'text/html')
 
+    def test_images_too_many_slashes(self):
+        """
+        The repo_id may have at most one slash. Here we have 3, which should
+        cause a 404
+        """
+        response = self.test_client.get('/v1/repositories/a/b/c/d/images')
+
+        self.assertEqual(response.status_code, 404)
+
     def test_tags(self):
-        response = self.test_client.get('/v1/repositories/foo/tags')
+        response = self.test_client.get('/v1/repositories/redhat/foo/tags')
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['Content-Type'], 'application/json')
@@ -51,8 +58,31 @@ class TestRepository(unittest.TestCase):
 
         self.assertEqual(json.loads(response.data), {'latest': 'abc123'})
 
+    def test_tags_no_namespace(self):
+        """
+        The "bar" repository ID does not have a namespace
+        """
+        # the docker client adds "library" as the default namespace in this case.
+        response = self.test_client.get('/v1/repositories/library/bar/tags')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+        self.assertEqual(response.headers['X-Docker-Registry-Config'], 'common')
+        self.assertEqual(response.headers['X-Docker-Registry-Version'], '0.6.6')
+
+        self.assertEqual(json.loads(response.data), {'latest': 'def456'})
+
     def test_tags_404(self):
-        response = self.test_client.get('/v1/repositories/idontexist/tags')
+        response = self.test_client.get('/v1/repositories/redhat/idontexist/tags')
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.headers['Content-Type'], 'text/html')
+
+    def test_tags_too_many_slashes(self):
+        """
+        The repo_id may have at most one slash. Here we have 3, which should
+        cause a 404
+        """
+        response = self.test_client.get('/v1/repositories/a/b/c/d/tags')
+
+        self.assertEqual(response.status_code, 404)

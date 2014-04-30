@@ -6,7 +6,7 @@
 
 Name: python-crane
 Version: 0.1.0
-Release: 0.1.alpha%{?dist}
+Release: 0.2.alpha%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
 License: GPLv2
@@ -50,8 +50,10 @@ cp deployment/crane.wsgi %{buildroot}/%{_usr}/share/crane/
 
 %if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
 cp deployment/apache24.conf %{buildroot}/%{_usr}/share/crane/apache.conf
+cp deployment/crane.wsgi %{buildroot}/%{_usr}/share/crane/
 %else
 cp deployment/apache22.conf %{buildroot}/%{_usr}/share/crane/apache.conf
+cp deployment/crane_el6.wsgi %{buildroot}/%{_usr}/share/crane/crane.wsgi
 %endif
 
 rm -rf %{buildroot}%{python2_sitelib}/tests

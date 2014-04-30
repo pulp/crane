@@ -21,6 +21,8 @@ class TestLoad(unittest.TestCase):
         config.load(self.app)
 
         self.assertTrue(self.app.config.get('DEBUG') is False)
+        self.assertEqual(self.app.config.get(config.KEY_DATA_DIR), '/var/lib/crane/metadata/')
+        self.assertTrue(self.app.config.get(config.KEY_ENDPOINT) is None)
 
     @mock.patch('os.environ.get', return_value='/a/b/c/idontexist', spec_set=True)
     def test_file_not_found(self, mock_get):

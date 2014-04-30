@@ -1,7 +1,7 @@
 import json
 
 import base
-
+from crane import config
 
 
 class TestRepository(base.BaseCraneAPITest):
@@ -17,6 +17,19 @@ class TestRepository(base.BaseCraneAPITest):
         response_data = json.loads(response.data)
         self.assertTrue({'id': 'abc123'} in response_data)
         self.assertTrue({'id': 'xyz789'} in response_data)
+
+    def test_detect_endpoint(self):
+        """
+        Set the configured endpoint to None, forcing crane to detect what
+        host and port are being accessed by the request.
+        """
+        self.app.config[config.KEY_ENDPOINT] = None
+
+        response = self.test_client.get('/v1/repositories/redhat/foo/images')
+
+        self.assertEqual(response.status_code, 200)
+        # 'localhost' is apparently what flask's test client produces
+        self.assertEqual(response.headers['X-Docker-Endpoints'], 'localhost')
 
     def test_images_no_namespace(self):
         """

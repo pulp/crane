@@ -18,7 +18,7 @@ KEY_ENDPOINT = 'endpoint'
 config_defaults = {
     KEY_DEBUG: 'false',
     KEY_DATA_DIR: '/var/lib/crane/metadata/',
-    KEY_ENDPOINT: 'localhost:5000'
+    KEY_ENDPOINT: None,
 }
 
 

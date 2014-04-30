@@ -1,6 +1,6 @@
 import urlparse
 
-from flask import abort, Blueprint, json, current_app, redirect
+from flask import abort, Blueprint, json, current_app, redirect, request
 
 from .. import data
 from crane import config
@@ -68,7 +68,10 @@ def repo_images(repo_id):
         abort(404)
     try:
         response = current_app.make_response(data.response_data['repos'][repo_id].images_json)
-        response.headers['X-Docker-Endpoints'] = current_app.config.get(config.KEY_ENDPOINT)
+        # use the configured endpoint if any, otherwise default to the host of
+        # the current request.
+        configured_endpoint = current_app.config.get(config.KEY_ENDPOINT)
+        response.headers['X-Docker-Endpoints'] = configured_endpoint or request.host
         return response
     except KeyError:
         abort(404)

@@ -23,7 +23,7 @@ class TestRepository(base.BaseCraneAPITest):
         Set the configured endpoint to None, forcing crane to detect what
         host and port are being accessed by the request.
         """
-        self.app.config[config.KEY_ENDPOINT] = None
+        self.app.config[config.KEY_ENDPOINT] = ''
 
         response = self.test_client.get('/v1/repositories/redhat/foo/images')
 

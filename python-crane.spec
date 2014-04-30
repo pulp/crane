@@ -67,3 +67,6 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 
 
 %changelog
+* Wed Apr 30 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.1.0-0.1.alpha
+- new package built with tito
+

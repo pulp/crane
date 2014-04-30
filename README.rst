@@ -27,7 +27,8 @@ data_dir
 endpoint
   hostname and optional port, in the form ``hostname:port``, where crane
   is deployed. This is the value that will be returned for the
-  ``X-Docker-Endpoint`` header. defaults to ``localhost:5000``
+  ``X-Docker-Endpoint`` header. defaults to the host and port used by the
+  requesting client
 
 
 Example:

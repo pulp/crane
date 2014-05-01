@@ -6,7 +6,7 @@
 
 Name: python-crane
 Version: 0.1.0
-Release: 0.2.alpha%{?dist}
+Release: 0.3.alpha%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
 License: GPLv2
@@ -44,7 +44,7 @@ settings.
 %{__python2} setup.py install --skip-build --root %{buildroot}
 
 mkdir -p %{buildroot}/%{_usr}/share/crane/
-mkdir -p %{buildroot}/%{_var}/lib/crane/
+mkdir -p %{buildroot}/%{_var}/lib/crane/metadata/
 
 cp deployment/crane.wsgi %{buildroot}/%{_usr}/share/crane/
 
@@ -65,6 +65,7 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 %{python2_sitelib}/crane*.egg-info
 %{_usr}/share/crane/
 %dir %{_var}/lib/crane/
+%dir %{_var}/lib/crane/metadata/
 %doc AUTHORS COPYRIGHT LICENSE README.rst
 
 

@@ -70,6 +70,9 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 
 
 %changelog
+* Thu May 01 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.1.0-0.3.alpha
+- adding metadata dir to rpm spec file (mhrivnak@redhat.com)
+
 * Wed Apr 30 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.1.0-0.2.alpha
 - adding wsgi file specifically for el6 to handle python-jinja2-26 weirdness
   (mhrivnak@redhat.com)

@@ -20,6 +20,8 @@ BuildRequires: python-setuptools
 BuildRequires: python-mock
 
 Requires: python-flask >= 0.9
+Requires(post): policycoreutils-python
+Requires(postun): policycoreutils-python
 
 %description
 This wsgi application exposes a read-only API similar to docker-registry, which
@@ -67,6 +69,17 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 %dir %{_var}/lib/crane/
 %dir %{_var}/lib/crane/metadata/
 %doc AUTHORS COPYRIGHT LICENSE README.rst
+
+
+%post
+semanage fcontext -a -t httpd_sys_content_t '%{_var}/lib/crane(/.*)?'
+restorecon -R -v %{_var}/lib/crane
+
+%postun
+if [ $1 -eq 0 ] ; then  # final removal
+semanage fcontext -d -t httpd_sys_content_t '%{_var}/lib/crane(/.*)?'
+restorecon -R -v %{_var}/lib/crane
+fi
 
 
 %changelog

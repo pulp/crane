@@ -39,3 +39,30 @@ Example:
   debug: true
   data_dir: /mnt/nfs/
   endpoint: localhost:5000
+
+
+Deployment
+----------
+
+Sample apache configuration files are available in ``/usr/share/crane/`` when
+installed via RPM, or in the ``deployment/`` directory if looking at the source.
+You can copy one of them into your apache ``conf.d`` directory and optionally
+modify it to fit your needs.
+
+
+Repository Data
+---------------
+
+To change what data crane is using, add or remove files in the configured
+``data_dir`` as necessary, and then reload your web server.
+
+
+Data Format
+-----------
+
+Crane expects to find files in the configured ``data_dir`` whose names end in
+``.json``. Nothing else about the file names is important to crane. Each file
+contains metadata about a docker repository.
+
+These files are produced by a publish action in
+`Pulp <http://www.pulpproject.org>`_.

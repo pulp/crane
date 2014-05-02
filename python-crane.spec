@@ -83,6 +83,11 @@ fi
 
 
 %changelog
+* Fri May 02 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.1.0-0.4.beta
+- Incrementing the release number. (mhrivnak@redhat.com)
+- adding selinux fcontext changes to spec file (mhrivnak@redhat.com)
+- Adding comments about how to deploy crane. (mhrivnak@redhat.com)
+
 * Thu May 01 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.1.0-0.3.alpha
 - adding metadata dir to rpm spec file (mhrivnak@redhat.com)
 

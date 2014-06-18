@@ -2,10 +2,11 @@ from collections import namedtuple
 import glob
 import logging
 import os
+import urlparse
 
 from flask import json
 
-from . import config
+from crane import config
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,7 @@ response_data = {
     'images': {},
 }
 
-Repo = namedtuple('Repo', ['url', 'images_json', 'tags_json'])
+Repo = namedtuple('Repo', ['url', 'images_json', 'tags_json', 'url_path', 'protected'])
 
 
 def load_from_file(path):
@@ -40,7 +41,11 @@ def load_from_file(path):
 
     repo_id = repo_data['repo-registry-id']
     image_ids = [image['id'] for image in repo_data['images']]
-    repo_tuple = Repo(repo_data['url'], json.dumps(repo_data['images']), json.dumps(repo_data['tags']))
+    url_path = urlparse.urlparse(repo_data['url']).path
+    repo_tuple = Repo(repo_data['url'],
+                      json.dumps(repo_data['images']),
+                      json.dumps(repo_data['tags']),
+                      url_path, repo_data.get('protected', False))
 
     return repo_id, repo_tuple, image_ids
 

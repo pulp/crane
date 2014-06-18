@@ -1,0 +1,15 @@
+{
+    "images": [
+        {
+            "id": "qux123"
+        }
+    ],
+    "repository": "qux",
+    "repo-registry-id": "qux",
+    "protected": true,
+    "tags": {
+        "latest": "qux123"
+    },
+    "url": "http://cdn.redhat.com/some/invalid/path/qux/images",
+    "version": 1
+}

@@ -50,7 +50,7 @@ class TestRepository(base.BaseCraneAPITest):
         response = self.test_client.get('/v1/repositories/idontexist/images')
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.headers['Content-Type'], 'text/html')
+        self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
 
     def test_images_too_many_slashes(self):
         """
@@ -89,7 +89,7 @@ class TestRepository(base.BaseCraneAPITest):
         response = self.test_client.get('/v1/repositories/redhat/idontexist/tags')
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.headers['Content-Type'], 'text/html')
+        self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
 
     def test_tags_too_many_slashes(self):
         """

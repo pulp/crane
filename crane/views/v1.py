@@ -1,15 +1,11 @@
-import urlparse
+from flask import Blueprint, json, current_app, redirect, request
 
-from flask import abort, Blueprint, json, current_app, redirect, request
-
-from .. import data
 from crane import config
+from crane import exceptions
+from crane.api import repository, images
 
 
 section = Blueprint('v1', __name__, url_prefix='/v1')
-
-
-VALID_IMAGE_FILES = frozenset(['ancestry', 'json', 'layer'])
 
 
 @section.after_request
@@ -65,16 +61,15 @@ def repo_images(repo_id):
     """
     # a valid repository ID will have zero or one slash
     if len(repo_id.split('/')) > 2:
-        abort(404)
-    try:
-        response = current_app.make_response(data.response_data['repos'][repo_id].images_json)
-        # use the configured endpoint if any, otherwise default to the host of
-        # the current request.
-        configured_endpoint = current_app.config.get(config.KEY_ENDPOINT)
-        response.headers['X-Docker-Endpoints'] = configured_endpoint or request.host
-        return response
-    except KeyError:
-        abort(404)
+        raise exceptions.NotFoundException()
+
+    images_in_repo = repository.get_images_for_repo(repo_id)
+    response = current_app.make_response(images_in_repo)
+    # use the configured endpoint if any, otherwise default to the host of
+    # the current request.
+    configured_endpoint = current_app.config.get(config.KEY_ENDPOINT)
+    response.headers['X-Docker-Endpoints'] = configured_endpoint or request.host
+    return response
 
 
 @section.route('/repositories/<path:repo_id>/tags')
@@ -94,17 +89,14 @@ def repo_tags(repo_id):
     """
     # a valid repository ID will have zero or one slash
     if len(repo_id.split('/')) > 2:
-        abort(404)
+        raise exceptions.NotFoundException()
 
     # for repositories that do not have a "/" in the name, docker will add
     # "library/" to the beginning of the repository path only for this call.
     if repo_id.startswith('library/'):
         repo_id = repo_id[len('library/'):]
 
-    try:
-        return data.response_data['repos'][repo_id].tags_json
-    except KeyError:
-        abort(404)
+    return repository.get_tags_for_repo(repo_id)
 
 
 @section.route('/images/<image_id>/<filename>')
@@ -120,23 +112,5 @@ def images_redirect(image_id, filename):
     :return:    302 redirect response
     :rtype:     flask.Response
     """
-    chosen_repo = None
-
-    if filename not in VALID_IMAGE_FILES:
-        abort(404)
-
-    # getting a reference up-front ensures that we will inspect only one
-    # consistent version of the data structure while handling this request.
-    response_data = data.response_data
-
-    try:
-        for repo in response_data['images'][image_id]:
-            chosen_repo = repo
-            break
-        base_url = response_data['repos'][chosen_repo].url
-    except KeyError:
-        abort(404)
-
-    if not base_url.endswith('/'):
-        base_url += '/'
-    return redirect(urlparse.urljoin(base_url, '/'.join([image_id, filename])))
+    image_url = images.get_image_file_url(image_id, filename)
+    return redirect(image_url)

@@ -17,7 +17,8 @@ def get_image_file_url(image_id, repo_info, filename):
     :type repo_info: crane.data.Repo
     :param filename: The identifier for the file belonging to the image
     :type filename: basestring
-    :returns: json structure of tags
+    :returns: url for a file inside an image
+    :rtype: str
 
     :raises NotFoundException: if the file specified is not known
     """

@@ -9,6 +9,7 @@ def get_images_for_repo(repo_id):
     :param repo_id: The identifier for the repository
     :type repo_id: basestring
     :returns: json structure of image details
+    :rtype: dict
     """
     # Validation that the repo exists is taken care of by the decorator
     return get_data()['repos'][repo_id].images_json
@@ -22,6 +23,7 @@ def get_tags_for_repo(repo_id):
     :param repo_id: The identifier for the repository
     :type repo_id: basestring
     :returns: json structure of repo tags
+    :rtype: dict
     """
     # Validation that the repo exists is taken care of by the decorator
     return get_data()['repos'][repo_id].tags_json

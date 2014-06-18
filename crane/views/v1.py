@@ -1,8 +1,8 @@
 from flask import Blueprint, json, current_app, redirect, request
 
-from crane import config
-from crane import exceptions
-from crane.api import repository, images
+from .. import config
+from .. import exceptions
+from ..api import repository, images
 
 
 section = Blueprint('v1', __name__, url_prefix='/v1')

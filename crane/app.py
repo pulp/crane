@@ -1,9 +1,9 @@
 from flask import Flask
 
-from crane.views import v1
-from crane import config, data
-from crane import exceptions
-from crane import app_util
+from .views import v1
+from . import config, data
+from . import exceptions
+from . import app_util
 
 
 def create_app():

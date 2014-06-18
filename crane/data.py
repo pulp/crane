@@ -6,7 +6,7 @@ import urlparse
 
 from flask import json
 
-from crane import config
+from . import config
 
 
 logger = logging.getLogger(__name__)

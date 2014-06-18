@@ -1,4 +1,5 @@
 import logging
+from functools import wraps
 
 from flask import request
 from rhsm import certificate
@@ -15,6 +16,11 @@ def error_handler_not_found(error):
     """
     Processing method for turning a NotFoundException into the appropriate
     values for processing in Flask.
+
+    :param error: The error that occurred
+    :type error: Exception
+    :returns A text description of the error and the http error code that should be returned to the browser
+    :rtype str, int
     """
     return str(error), 404
 
@@ -23,6 +29,11 @@ def error_handler_auth_error(error):
     """
     Processing method for turning an AuthorizationFailed into the appropriate
     values for processing in Flask.
+
+    :param error: The error that occurred
+    :type error: Exception
+    :returns A text description of the error and the http error code that should be returned to the browser
+    :rtype str, int
     """
     return str(error), 403
 
@@ -31,7 +42,11 @@ def authorize_repo_id(func):
     """
     Authorize that a particular certificate has access to any directory
     containing the repository identified by repo_id
+
+    :param repo_id: The identifier for the repository
+    :type repo_id: str
     """
+    @wraps(func)
     def wrapper(repo_id, *args, **kwargs):
         response_data = get_data()
         repo_tuple = response_data['repos'].get(repo_id)
@@ -51,7 +66,11 @@ def authorize_image_id(func):
     """
     Authorize that a particular certificate has access to any repo
     containing the specified image id
+
+    :param image_id: The identifier of an image being served by Crane
+    :type image_id: str
     """
+    @wraps(func)
     def wrapper(image_id, *args, **kwargs):
         response_data = get_data()
         image_repos = response_data['images'].get(image_id)

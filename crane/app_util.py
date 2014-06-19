@@ -19,7 +19,7 @@ def error_handler_not_found(error):
 
     :param error: The error that occurred
     :type error: Exception
-    :returns A text description of the error and the http error code that should be returned to the browser
+    :returns A text description of the error and the http error code that should be returned
     :rtype str, int
     """
     return str(error), 404
@@ -32,7 +32,7 @@ def error_handler_auth_error(error):
 
     :param error: The error that occurred
     :type error: Exception
-    :returns A text description of the error and the http error code that should be returned to the browser
+    :returns A text description of the error and the http error code that should be returned
     :rtype str, int
     """
     return str(error), 403

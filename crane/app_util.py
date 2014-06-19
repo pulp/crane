@@ -45,6 +45,7 @@ def authorize_repo_id(func):
 
     :param repo_id: The identifier for the repository
     :type repo_id: str
+    :rtype: function
     """
     @wraps(func)
     def wrapper(repo_id, *args, **kwargs):
@@ -69,6 +70,7 @@ def authorize_image_id(func):
 
     :param image_id: The identifier of an image being served by Crane
     :type image_id: str
+    :rtype: function
     """
     @wraps(func)
     def wrapper(image_id, *args, **kwargs):

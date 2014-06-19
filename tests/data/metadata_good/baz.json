@@ -1,0 +1,15 @@
+{
+    "images": [
+        {
+            "id": "baz123"
+        }
+    ],
+    "repository": "baz",
+    "repo-registry-id": "baz",
+    "protected": true,
+    "tags": {
+        "latest": "baz123"
+    },
+    "url": "http://cdn.redhat.com/foo/path/bar/baz/images",
+    "version": 1
+}

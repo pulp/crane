@@ -1,8 +1,7 @@
 import os
 import unittest
 
-import crane.app
-from crane import config, data
+from crane import app, config, data
 
 
 metadata_good_path = os.path.join(os.path.dirname(__file__), '../data/metadata_good/')
@@ -10,7 +9,7 @@ metadata_good_path = os.path.join(os.path.dirname(__file__), '../data/metadata_g
 
 class BaseCraneAPITest(unittest.TestCase):
     def setUp(self):
-        self.app = crane.app.create_app()
+        self.app = app.create_app()
         self.app.config[config.KEY_DATA_DIR] = metadata_good_path
         self.app.config[config.KEY_ENDPOINT] = 'localhost:5000'
         self.app.config['DEBUG'] = True

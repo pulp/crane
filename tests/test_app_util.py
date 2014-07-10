@@ -1,3 +1,4 @@
+import httplib
 import unittest
 
 import mock
@@ -5,6 +6,7 @@ from rhsm import certificate, certificate2
 
 from crane import app_util
 from crane import exceptions
+from crane.data import Repo
 import demo_data
 
 from .views import base
@@ -35,16 +37,22 @@ class FlaskContextBase(base.BaseCraneAPITest):
 class TestAuthorizeRepoId(FlaskContextBase):
 
     def test_raises_not_found_if_repo_id_none(self):
-        self.assertRaises(exceptions.NotFoundException, mock_repo_func, None)
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_repo_func(None)
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     def test_raises_not_found_if_repo_id_invalid(self):
-        self.assertRaises(exceptions.NotFoundException, mock_repo_func, 'bad_id')
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_repo_func('bad_id')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     @mock.patch('crane.app_util._get_certificate')
-    def test_raises_auth_error_if_id_invalid(self, mock_get_cert):
+    def test_raises_not_found_if_id_invalid(self, mock_get_cert):
         cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
         mock_get_cert.return_value = cert
-        self.assertRaises(exceptions.AuthorizationFailed, mock_repo_func, 'qux')
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_repo_func('qux')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     @mock.patch('crane.app_util._get_certificate')
     def test_passes_if_auth_valid(self, mock_get_cert):
@@ -64,22 +72,30 @@ class TestAuthorizeRepoId(FlaskContextBase):
     def test_auth_fails_if_no_path_matches_credentials(self, mock_get_cert):
         cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
         mock_get_cert.return_value = cert
-        self.assertRaises(exceptions.AuthorizationFailed, mock_repo_func, 'qux')
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_repo_func('qux')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
 
 class TestAuthorizeImageId(FlaskContextBase):
 
     def test_raises_not_found_if_image_id_none(self):
-        self.assertRaises(exceptions.NotFoundException, mock_image_func, None)
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_image_func(None)
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     def test_raises_not_found_if_image_id_invalid(self):
-        self.assertRaises(exceptions.NotFoundException, mock_image_func, 'invalid')
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_image_func('invalid')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     @mock.patch('crane.app_util._get_certificate')
     def test_raises_auth_error_if_id_invalid(self, mock_get_cert):
         cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
         mock_get_cert.return_value = cert
-        self.assertRaises(exceptions.AuthorizationFailed, mock_image_func, 'qux123')
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_image_func('qux')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     @mock.patch('crane.app_util._get_certificate')
     def test_passes_if_auth_valid(self, mock_get_cert):
@@ -95,20 +111,30 @@ class TestAuthorizeImageId(FlaskContextBase):
         result = mock_image_func('xyz789')
         self.assertEquals(result, 'foo')
 
+    @mock.patch('crane.app_util._get_certificate')
+    def test_not_authorized(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
 
-class TestHandlers(unittest.TestCase):
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            result = mock_image_func('qux123')
+        self.assertEquals(assertion.exception.status_code, httplib.NOT_FOUND)
 
-    def test_auth_handler(self):
-        string_value, http_code = app_util.error_handler_auth_error(
-            exceptions.AuthorizationFailed('Foo Error'))
+
+
+class TestHandler(unittest.TestCase):
+
+    def test_default_message(self):
+        string_value, http_code = app_util.http_error_handler(
+            exceptions.HTTPError(httplib.NOT_FOUND))
+        self.assertEquals(string_value, httplib.responses[httplib.NOT_FOUND])
+        self.assertEquals(http_code, httplib.NOT_FOUND)
+
+    def test_custom_message(self):
+        string_value, http_code = app_util.http_error_handler(
+            exceptions.HTTPError(httplib.BAD_GATEWAY, 'Foo Error'))
         self.assertEquals(string_value, 'Foo Error')
-        self.assertEquals(http_code, 403)
-
-    def test_not_found_handler(self):
-        string_value, http_code = app_util.error_handler_not_found(
-            exceptions.NotFoundException('Foo Error'))
-        self.assertEquals(string_value, 'Foo Error')
-        self.assertEquals(http_code, 404)
+        self.assertEquals(http_code, httplib.BAD_GATEWAY)
 
 
 class TestGetCertificate(FlaskContextBase):

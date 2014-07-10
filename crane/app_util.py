@@ -1,3 +1,4 @@
+import httplib
 import logging
 from functools import wraps
 
@@ -12,30 +13,23 @@ from crane import data
 logger = logging.getLogger(__name__)
 
 
-def error_handler_not_found(error):
+def http_error_handler(error):
     """
-    Processing method for turning a NotFoundException into the appropriate
-    values for processing in Flask.
+    handle HTTPError exceptions and return the associated error message and HTTP
+    response code. This uses the response code specified on the exception. It
+    will use a message defined on the response object if present, or else it
+    will default to the standard message associated with the error code.
 
-    :param error: The error that occurred
-    :type error: Exception
-    :returns A text description of the error and the http error code that should be returned
-    :rtype str, int
+    :param error:   exception raised to indicate that an HTTP error response
+                    should be generated and returned
+    :type  error:   crane.exceptions.HTTPError
+
+    :return:    message and HTTP response code that should be returned in an
+                HTTP response.
+    :rtype:     basestring, int
     """
-    return str(error), 404
-
-
-def error_handler_auth_error(error):
-    """
-    Processing method for turning an AuthorizationFailed into the appropriate
-    values for processing in Flask.
-
-    :param error: The error that occurred
-    :type error: Exception
-    :returns A text description of the error and the http error code that should be returned
-    :rtype str, int
-    """
-    return str(error), 403
+    message = error.message or httplib.responses[error.status_code]
+    return message, error.status_code
 
 
 def authorize_repo_id(func):
@@ -49,18 +43,35 @@ def authorize_repo_id(func):
     """
     @wraps(func)
     def wrapper(repo_id, *args, **kwargs):
-        response_data = get_data()
-        repo_tuple = response_data['repos'].get(repo_id)
-        if repo_tuple is None:
-            raise exceptions.NotFoundException()
-        if repo_tuple.protected:
-            cert = _get_certificate()
-            if not cert or not cert.check_path(repo_tuple.url_path):
-                raise exceptions.AuthorizationFailed()
-
+        # will raise an appropriate exception if not found or not authorized
+        repo_is_authorized(repo_id)
         return func(repo_id, *args, **kwargs)
 
     return wrapper
+
+
+def repo_is_authorized(repo_id):
+    """
+    determines if the current request is authorized to read the given repo ID.
+
+    :param repo_id: name of the repository being accessed
+    :type  repo_id: basestring
+
+    :raises exceptions.HTTPError: if authorization fails
+                                  403: if the user is not authorized
+                                  404: if the repo does not exist in this app
+    """
+    response_data = get_data()
+    repo_tuple = response_data['repos'].get(repo_id)
+    # if this deployment of this app does not know about the requested repo
+    if repo_tuple is None:
+        raise exceptions.HTTPError(httplib.NOT_FOUND)
+    if repo_tuple.protected:
+        cert = _get_certificate()
+        if not cert or not cert.check_path(repo_tuple.url_path):
+            # return 404 so we don't reveal the existence of repos that the user
+            # is not authorized for
+            raise exceptions.HTTPError(httplib.NOT_FOUND)
 
 
 def authorize_image_id(func):
@@ -77,8 +88,7 @@ def authorize_image_id(func):
         response_data = get_data()
         image_repos = response_data['images'].get(image_id)
         if image_repos is None:
-            raise exceptions.NotFoundException()
-
+            raise exceptions.HTTPError(httplib.NOT_FOUND)
         found_match = False
 
         # Check if an uprotected repo matches the request
@@ -98,7 +108,9 @@ def authorize_image_id(func):
                 break
 
         if not found_match:
-            raise exceptions.AuthorizationFailed()
+            # return 404 so we don't reveal the existence of images that the user
+            # is not authorized for
+            raise exceptions.HTTPError(httplib.NOT_FOUND)
 
         return func(image_id, repo_tuple, *args, **kwargs)
 

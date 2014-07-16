@@ -1,9 +1,9 @@
 import os
+
+import mock
 import unittest2
 
 from crane import app, config, data
-
-import mock
 
 
 metadata_good_path = os.path.join(os.path.dirname(__file__), '../data/metadata_good/')

@@ -21,7 +21,6 @@ with open(rhel70_no_desc_xml_path) as f:
     rhel70_no_desc_xml = f.read()
 
 
-
 class BaseGSATest(unittest2.TestCase):
     def setUp(self):
         super(BaseGSATest, self).setUp()

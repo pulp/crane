@@ -1,12 +1,15 @@
 import json
 import unittest
 
+import mock
+
 import crane.app
 
 
 class TestPing(unittest.TestCase):
     def setUp(self):
-        self.app = crane.app.create_app().test_client()
+        with mock.patch('crane.app.init_logging'):
+            self.app = crane.app.create_app().test_client()
 
     def test_response(self):
         response = self.app.get('/v1/_ping')

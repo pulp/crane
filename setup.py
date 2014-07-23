@@ -22,5 +22,5 @@ setup(
     description='docker-registry-like API with redirection, as a wsgi app',
     install_requires=requirements,
     tests_require=test_requirements,
-    test_suite='tests',
+    test_suite='unittest2.collector',
 )

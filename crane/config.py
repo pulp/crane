@@ -3,7 +3,7 @@ import logging
 import os
 
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 DEFAULT_CONFIG_PATH = '/etc/crane.conf'
@@ -15,12 +15,16 @@ KEY_DEBUG = 'debug'
 KEY_DATA_DIR = 'data_dir'
 KEY_ENDPOINT = 'endpoint'
 
+SECTION_GSA = 'gsa'
+
+KEY_URL = 'url'
+
 config_defaults = {
     KEY_DEBUG: 'false',
     KEY_DATA_DIR: '/var/lib/crane/metadata/',
     KEY_ENDPOINT: '',
+    KEY_URL: '',
 }
-
 
 def load(app):
     """
@@ -36,19 +40,24 @@ def load(app):
     try:
         with open(config_path) as config_file:
             parser.readfp(config_file)
-        logger.info('config loaded from %s' % config_path)
+        _logger.info('config loaded from %s' % config_path)
     except IOError:
         if config_path != DEFAULT_CONFIG_PATH:
-            logger.error('config file not found at path %s' % config_path)
+            _logger.error('config file not found at path %s' % config_path)
             raise
         # if the user did not specify a config path and there is not a file
         # at the default path, just use the default settings.
-        logger.info('no config specified or found, so using defaults')
+        _logger.info('no config specified or found, so using defaults')
 
     # adding the empty section will allow defaults to be used below
-    if not parser.has_section(SECTION_GENERAL):
-        parser.add_section(SECTION_GENERAL)
+    for section in [SECTION_GENERAL, SECTION_GSA]:
+        if not parser.has_section(section):
+            parser.add_section(section)
 
+    # [general] section
     app.config['DEBUG'] = parser.getboolean(SECTION_GENERAL, KEY_DEBUG)
     app.config[KEY_DATA_DIR] = parser.get(SECTION_GENERAL, KEY_DATA_DIR)
     app.config[KEY_ENDPOINT] = parser.get(SECTION_GENERAL, KEY_ENDPOINT)
+
+    # [gsa] section
+    app.config[SECTION_GSA + '_' + KEY_URL] = parser.get(SECTION_GSA, KEY_URL)

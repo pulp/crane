@@ -1,17 +1,22 @@
-from ..test_app_util import FlaskContextBase
+import httplib
+
 from crane import exceptions
 from crane.api import images
+
+from ..test_app_util import FlaskContextBase
 
 
 class TestGetImageFileUrl(FlaskContextBase):
 
     def test_invalid_filename(self):
-        self.assertRaises(exceptions.NotFoundException, images.get_image_file_url,
-                          'def456', 'bad_file')
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            images.get_image_file_url('def456', 'foo')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     def test_invalid_image_id(self):
-        self.assertRaises(exceptions.NotFoundException, images.get_image_file_url,
-                          'bad_image_id', 'ancestry')
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            images.get_image_file_url('bad_image_id', 'ancestry')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     def test_repo_url_missing_trailing_slash(self):
         result = images.get_image_file_url('def456', 'ancestry')

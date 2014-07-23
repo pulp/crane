@@ -14,7 +14,7 @@ test_requirements = open(_test_req_path).read()
 setup(
     name='crane',
     version=crane.version,
-    packages=find_packages(exclude=['tests']),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     url='http://www.pulpproject.org',
     license='GPLv2+',
     author='Pulp Team',

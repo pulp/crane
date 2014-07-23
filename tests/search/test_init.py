@@ -24,7 +24,7 @@ class TestLoadConfig(unittest2.TestCase):
         mock_app = mock.MagicMock()
         fake_url = 'http://pulpproject.org/search'
         mock_app.config = {
-            config.SECTION_GSA + '_' + config.KEY_URL: fake_url,
+            config.SECTION_GSA: {config.KEY_URL: fake_url},
         }
 
         search.load_config(mock_app)

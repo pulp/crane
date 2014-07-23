@@ -17,7 +17,7 @@ def load_config(app):
     """
     global backend
 
-    url = app.config.get(config.SECTION_GSA + '_' + config.KEY_URL)
+    url = app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL)
     if url:
         backend = GSA(url)
         return

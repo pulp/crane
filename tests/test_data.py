@@ -52,7 +52,6 @@ class TestLoadAll(unittest.TestCase):
     def test_with_metadata_good(self, mock_glob):
         mock_glob.return_value = [demo_data.foo_metadata_path]
         mock_app = mock.MagicMock()
-        mock_app.config = config.config_defaults.copy()
 
         data.load_all(mock_app)
 
@@ -72,7 +71,6 @@ class TestLoadAll(unittest.TestCase):
     def test_with_metadata_bad(self, mock_error, mock_glob):
         mock_glob.return_value = [demo_data.wrong_version_path]
         mock_app = mock.MagicMock()
-        mock_app.config = config.config_defaults.copy()
 
         data.load_all(mock_app)
 
@@ -87,7 +85,6 @@ class TestLoadAll(unittest.TestCase):
     def test_with_wrong_path(self, mock_error, mock_glob):
         mock_glob.return_value = ['/a/b/c/d.json']
         mock_app = mock.MagicMock()
-        mock_app.config = config.config_defaults.copy()
 
         data.load_all(mock_app)
 

@@ -23,4 +23,7 @@ setup(
     install_requires=requirements,
     tests_require=test_requirements,
     test_suite='unittest2.collector',
+    package_data={
+        'crane': ['data/*.conf'],
+    },
 )

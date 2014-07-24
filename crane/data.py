@@ -2,6 +2,8 @@ from collections import namedtuple
 import glob
 import logging
 import os
+import threading
+import time
 import urlparse
 
 from flask import json
@@ -50,6 +52,39 @@ def load_from_file(path):
     return repo_id, repo_tuple, image_ids
 
 
+def monitor_data_dir(app):
+    """
+    Loop forever monitoring the data directory for changes and reload the data if any changes occur
+    This checks for updates every 60 seconds
+
+    :param app: the flask application
+    :type  app: flask.Flask
+    """
+    data_dir = app.config[config.KEY_DATA_DIR]
+    last_modified = 0
+    while True:
+        # Check if the modified time has changed on the directory and if so reload the data
+        # This has been verified using a directory mounted via NFS 4 as well as locally
+        current_modified = os.stat(data_dir).st_mtime
+        if current_modified > last_modified:
+            last_modified = current_modified
+            load_all(app)
+        time.sleep(60)
+
+
+def start_monitoring_data_dir(app):
+    """
+    Spin off a daemon thread that monitors the data dir for changes and updates the app config
+    if any changes occur.  This will guarantee a refresh of the app data the first time it is run
+
+    :param app: the flask application
+    :type  app: flask.Flask
+    """
+    thread = threading.Thread(target=monitor_data_dir, args=(app,))
+    thread.setDaemon(True)
+    thread.start()
+
+
 def load_all(app):
     """
     Load all metadata files and replace the "response_data" value in this
@@ -59,7 +94,6 @@ def load_all(app):
     :type  app: flask.Flask
     """
     global response_data
-
     repos = {}
     images = {}
 

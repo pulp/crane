@@ -1,4 +1,8 @@
 import json
+import os
+import shutil
+import tempfile
+import time
 import unittest
 
 import mock
@@ -97,3 +101,73 @@ class TestLoadAll(unittest.TestCase):
 
         # make sure an error was logged
         self.assertEqual(mock_error.call_count, 1)
+
+
+class TestMonitorDataDir(unittest.TestCase):
+
+    def setUp(self):
+        self.working_dir = tempfile.mkdtemp()
+        self.app = mock.Mock(config={config.KEY_DATA_DIR: self.working_dir})
+        self.test_file = os.path.join(self.working_dir, 'test.file')
+        open(self.test_file, 'w').close()
+        self.helper_method_called = False
+
+    def tearDown(self):
+        shutil.rmtree(self.working_dir, ignore_errors=True)
+
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time')
+    def test_monitor_initial_load(self, mock_time, mock_load_all):
+        mock_time.sleep.side_effect = Exception()
+        self.assertRaises(Exception, data.monitor_data_dir, self.app)
+        self.assertTrue(mock_load_all.called)
+
+    def _add_file(self, *args, **kwargs):
+        test_file_add = os.path.join(self.working_dir, 'test1.file')
+        print 'add_file_called ', test_file_add
+        if not self.helper_method_called:
+            self.helper_method_called = True
+            print 'adding file ', test_file_add
+            open(test_file_add, 'w').close()
+            return mock.DEFAULT
+        raise Exception()
+
+    @mock.patch('crane.data.os.stat')
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time')
+    def test_monitor_addition(self, mock_time, mock_load_all, mock_stat):
+        mock_time.sleep.return_value = 0
+        mock_time.sleep.side_effect = self._add_file
+        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=5)]
+        self.assertRaises(Exception, data.monitor_data_dir, self.app)
+        self.assertEquals(mock_load_all.call_count, 2)
+
+    def _remove_file(self, *args, **kwargs):
+        if not self.helper_method_called:
+            self.helper_method_called = True
+            os.unlink(self.test_file)
+            return mock.DEFAULT
+        raise Exception()
+
+    @mock.patch('crane.data.os.stat')
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time')
+    def test_monitor_remove(self, mock_time, mock_load_all, mock_stat):
+        mock_time.sleep.return_value = 0
+        mock_time.sleep.side_effect = self._remove_file
+        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=5)]
+        self.assertRaises(Exception, data.monitor_data_dir, self.app)
+        self.assertEquals(mock_load_all.call_count, 2)
+
+
+class StartMonitoringDataDirTests(unittest.TestCase):
+
+    @mock.patch('crane.data.threading.Thread')
+    def test_monitoring_initialization(self, mock_thread):
+        mock_app = mock.Mock()
+        data.start_monitoring_data_dir(mock_app)
+        mock_thread.assert_called_once_with(target=data.monitor_data_dir,
+                                            args=(mock_app,))
+        created_thread = mock_thread.return_value
+        created_thread.setDaemon.assert_called_once_with(True)
+        self.assertTrue(created_thread.start.called)

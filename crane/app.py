@@ -19,5 +19,5 @@ def create_app():
     app.register_error_handler(exceptions.NotFoundException, app_util.error_handler_not_found)
 
     config.load(app)
-    data.load_all(app)
+    data.start_monitoring_data_dir(app)
     return app

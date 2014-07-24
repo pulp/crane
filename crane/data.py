@@ -61,14 +61,17 @@ def monitor_data_dir(app):
     :type  app: flask.Flask
     """
     data_dir = app.config[config.KEY_DATA_DIR]
+    if not os.path.exists(data_dir):
+        logging.error('The data directory specified does not exist: %s' % data_dir)
     last_modified = 0
     while True:
         # Check if the modified time has changed on the directory and if so reload the data
         # This has been verified using a directory mounted via NFS 4 as well as locally
-        current_modified = os.stat(data_dir).st_mtime
-        if current_modified > last_modified:
-            last_modified = current_modified
-            load_all(app)
+        if os.path.exists(data_dir):
+            current_modified = os.stat(data_dir).st_mtime
+            if current_modified > last_modified:
+                last_modified = current_modified
+                load_all(app)
         time.sleep(60)
 
 

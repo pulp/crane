@@ -135,7 +135,9 @@ class TestMonitorDataDir(unittest.TestCase):
     def test_monitor_addition(self, mock_time, mock_load_all, mock_stat):
         mock_time.sleep.return_value = 0
         mock_time.sleep.side_effect = self._add_file
-        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=5)]
+        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
+                                 mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
+                                 mock.Mock(st_mtime=5)]
         self.assertRaises(Exception, data.monitor_data_dir, self.app)
         self.assertEquals(mock_load_all.call_count, 2)
 
@@ -152,7 +154,9 @@ class TestMonitorDataDir(unittest.TestCase):
     def test_monitor_remove(self, mock_time, mock_load_all, mock_stat):
         mock_time.sleep.return_value = 0
         mock_time.sleep.side_effect = self._remove_file
-        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=5)]
+        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
+                                 mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
+                                 mock.Mock(st_mtime=5)]
         self.assertRaises(Exception, data.monitor_data_dir, self.app)
         self.assertEquals(mock_load_all.call_count, 2)
 

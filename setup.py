@@ -14,7 +14,7 @@ test_requirements = open(_test_req_path).read()
 setup(
     name='crane',
     version=crane.version,
-    packages=find_packages(exclude=['tests']),
+    packages=find_packages(exclude=['tests', 'tests.*']),
     url='http://www.pulpproject.org',
     license='GPLv2+',
     author='Pulp Team',
@@ -22,5 +22,8 @@ setup(
     description='docker-registry-like API with redirection, as a wsgi app',
     install_requires=requirements,
     tests_require=test_requirements,
-    test_suite='tests',
+    test_suite='unittest2.collector',
+    package_data={
+        'crane': ['data/*.conf'],
+    },
 )

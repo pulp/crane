@@ -18,8 +18,10 @@ BuildArch: noarch
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
 BuildRequires: python-mock
+BuildRequires: python-unittest2
 
 Requires: python-flask >= 0.9
+Requires: python-setuptools
 Requires(post): policycoreutils-python
 Requires(postun): policycoreutils-python
 

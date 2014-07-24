@@ -14,7 +14,7 @@ A config file will be loaded from the path found in environment variable
 ``CRANE_CONFIG_PATH``. If not specified, the default location of
 ``/etc/crane.conf`` will be used.
 
-All options should go under a section named ``[general]``
+The following options should go under a section named ``[general]``
 
 debug
   ``true`` or ``false``, which sets Flask's ``DEBUG`` config option. defaults to
@@ -39,6 +39,28 @@ Example:
   debug: true
   data_dir: /mnt/nfs/
   endpoint: localhost:5000
+
+
+Search
+------
+
+The API supporting ``docker search`` can be enabled by configuring a Google
+Search Appliance for use by crane. In crane's configuration file, a section
+``[gsa]`` must exist with key ``url``. The URL will be used in a GET request,
+and a query parameter ``q`` will be added with a search term.
+
+Example:
+
+::
+
+  [gsa]
+  url: https://path/to/my/search?x=1&y=2
+
+.. warning:: crane does not currently verify the SSL certificate of the GSA
+
+The XML returned by the GSA must contain values for ``portal_name`` and
+``portal_short_description``, which will be turned into the name and
+description returned by crane's search API.
 
 
 Deployment

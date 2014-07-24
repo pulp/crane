@@ -1,8 +1,11 @@
+import httplib
+
 from flask import Blueprint, json, current_app, redirect, request
 
 from .. import config
 from .. import exceptions
 from ..api import repository, images
+from .. import search as search_package
 
 
 section = Blueprint('v1', __name__, url_prefix='/v1')
@@ -61,7 +64,7 @@ def repo_images(repo_id):
     """
     # a valid repository ID will have zero or one slash
     if len(repo_id.split('/')) > 2:
-        raise exceptions.NotFoundException()
+        raise exceptions.HTTPError(httplib.NOT_FOUND)
 
     images_in_repo = repository.get_images_for_repo(repo_id)
     response = current_app.make_response(images_in_repo)
@@ -89,7 +92,7 @@ def repo_tags(repo_id):
     """
     # a valid repository ID will have zero or one slash
     if len(repo_id.split('/')) > 2:
-        raise exceptions.NotFoundException()
+        raise exceptions.HTTPError(httplib.NOT_FOUND)
 
     # for repositories that do not have a "/" in the name, docker will add
     # "library/" to the beginning of the repository path only for this call.
@@ -97,6 +100,32 @@ def repo_tags(repo_id):
         repo_id = repo_id[len('library/'):]
 
     return repository.get_tags_for_repo(repo_id)
+
+
+@section.route('/search')
+def search():
+    """
+    Returns a json document containing search results in the format expected
+    from the docker index API.
+
+    :return:    json structure containing search results
+    :rtype:     basestring
+
+    :raises exceptions.HTTPError:   if "q" is missing in the url's parameters,
+                                    raises with 400 response coce
+    """
+    query = request.args.get('q', '')
+
+    if not query:
+        raise exceptions.HTTPError(httplib.BAD_REQUEST, message='parameter "q" is required')
+
+    data = list(search_package.backend.search(query))
+    response = {
+        'query': query,
+        'num_results': len(data),
+        'results': data,
+    }
+    return json.dumps(response)
 
 
 @section.route('/images/<image_id>/<filename>')

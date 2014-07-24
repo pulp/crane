@@ -1,3 +1,4 @@
+import httplib
 import urlparse
 
 from crane import exceptions
@@ -23,7 +24,7 @@ def get_image_file_url(image_id, repo_info, filename):
     :raises NotFoundException: if the file specified is not known
     """
     if filename not in VALID_IMAGE_FILES:
-        raise exceptions.NotFoundException()
+        raise exceptions.HTTPError(httplib.NOT_FOUND)
 
     base_url = repo_info.url
 

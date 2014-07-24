@@ -24,6 +24,10 @@ data_dir
   full path to the directory from which metadata files should be loaded. defaults
   to ``/var/lib/crane/metadata/``
 
+data_dir_polling_interval
+  The number of seconds between checks for updates to metadata files in the ``data_dir``.
+  This defaults to checking once every 60 seconds.
+
 endpoint
   hostname and optional port, in the form ``hostname:port``, where crane
   is deployed. This is the value that will be returned for the

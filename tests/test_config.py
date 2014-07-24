@@ -21,6 +21,7 @@ class TestLoad(unittest.TestCase):
         self.assertTrue(self.app.config.get('DEBUG') is False)
         self.assertEqual(self.app.config.get(config.KEY_DATA_DIR), '/var/lib/crane/metadata/')
         self.assertEqual(self.app.config.get(config.KEY_ENDPOINT), '')
+        self.assertEqual(self.app.config.get(config.KEY_DATA_POLLING_INTERVAL), 60)
         configured_gsa_url = self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL)
         self.assertEqual(configured_gsa_url, '')
 

@@ -2,7 +2,6 @@ import json
 import os
 import shutil
 import tempfile
-import time
 import unittest
 
 import mock
@@ -104,7 +103,8 @@ class TestMonitorDataDir(unittest.TestCase):
 
     def setUp(self):
         self.working_dir = tempfile.mkdtemp()
-        self.app = mock.Mock(config={config.KEY_DATA_DIR: self.working_dir})
+        self.app = mock.Mock(config={config.KEY_DATA_DIR: self.working_dir,
+                                     config.KEY_DATA_POLLING_INTERVAL: 60})
         self.test_file = os.path.join(self.working_dir, 'test.file')
         open(self.test_file, 'w').close()
         self.helper_method_called = False
@@ -121,10 +121,8 @@ class TestMonitorDataDir(unittest.TestCase):
 
     def _add_file(self, *args, **kwargs):
         test_file_add = os.path.join(self.working_dir, 'test1.file')
-        print 'add_file_called ', test_file_add
         if not self.helper_method_called:
             self.helper_method_called = True
-            print 'adding file ', test_file_add
             open(test_file_add, 'w').close()
             return mock.DEFAULT
         raise Exception()
@@ -136,7 +134,6 @@ class TestMonitorDataDir(unittest.TestCase):
         mock_time.sleep.return_value = 0
         mock_time.sleep.side_effect = self._add_file
         mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
-                                 mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
                                  mock.Mock(st_mtime=5)]
         self.assertRaises(Exception, data.monitor_data_dir, self.app)
         self.assertEquals(mock_load_all.call_count, 2)
@@ -155,7 +152,6 @@ class TestMonitorDataDir(unittest.TestCase):
         mock_time.sleep.return_value = 0
         mock_time.sleep.side_effect = self._remove_file
         mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
-                                 mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
                                  mock.Mock(st_mtime=5)]
         self.assertRaises(Exception, data.monitor_data_dir, self.app)
         self.assertEquals(mock_load_all.call_count, 2)

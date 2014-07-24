@@ -20,6 +20,7 @@ DEFAULT_CONFIG_RESOURCE = 'data/default_config.conf'
 SECTION_GENERAL = 'general'
 KEY_DEBUG = 'debug'
 KEY_DATA_DIR = 'data_dir'
+KEY_DATA_POLLING_INTERVAL = 'data_dir_polling_interval'
 KEY_ENDPOINT = 'endpoint'
 
 # google search appliance settings
@@ -80,6 +81,11 @@ def read_config(app, parser):
         for key in (KEY_DATA_DIR, KEY_ENDPOINT):
             with supress(NoOptionError):
                 app.config[key] = parser.get(SECTION_GENERAL, key)
+
+        # parse "general" section values as integers
+        for key in (KEY_DATA_POLLING_INTERVAL, ):
+            with supress(NoOptionError):
+                app.config[key] = int(parser.get(SECTION_GENERAL, key))
 
     # "gsa" (Google Search Appliance) section settings
     with supress(NoSectionError):

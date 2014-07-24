@@ -55,24 +55,29 @@ def load_from_file(path):
 def monitor_data_dir(app):
     """
     Loop forever monitoring the data directory for changes and reload the data if any changes occur
-    This checks for updates every 60 seconds
+    This checks for updates at the interval defined in the config file (Defaults to 60 seconds)
 
     :param app: the flask application
     :type  app: flask.Flask
     """
     data_dir = app.config[config.KEY_DATA_DIR]
+    polling_interval = app.config[config.KEY_DATA_POLLING_INTERVAL]
     if not os.path.exists(data_dir):
         logging.error('The data directory specified does not exist: %s' % data_dir)
     last_modified = 0
     while True:
         # Check if the modified time has changed on the directory and if so reload the data
         # This has been verified using a directory mounted via NFS 4 as well as locally
-        if os.path.exists(data_dir):
+        try:
+            logging.debug('Checking for new metadata files')
             current_modified = os.stat(data_dir).st_mtime
             if current_modified > last_modified:
                 last_modified = current_modified
                 load_all(app)
-        time.sleep(60)
+        except OSError:
+            # The directory does not exist
+            pass
+        time.sleep(polling_interval)
 
 
 def start_monitoring_data_dir(app):

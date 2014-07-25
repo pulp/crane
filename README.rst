@@ -80,9 +80,11 @@ Repository Data
 ---------------
 
 To change what data crane is using, add or remove files in the configured
-``data_dir`` as necessary.  The changes will be picked up automatically during the
-next polling done at the interval set by ``data_dir_polling_interval``
-
+``data_dir`` as necessary. The changes will be picked up automatically during the
+next polling done at the interval set by ``data_dir_polling_interval``.
+Auto loading of changes works when files are added or removed but not modified in place. If a file
+is modified in place the change may not be picked up because Crane checking the modified time
+on the ``data_dir`` and not the individual files in the ``data_dir``.
 
 Data Format
 -----------

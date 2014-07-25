@@ -31,11 +31,11 @@ class TestLoad(unittest.TestCase):
 
     @mock.patch('os.environ.get', return_value='/a/b/c/idontexist', spec_set=True)
     def test_file_not_found(self, mock_get):
-        """
-        test that when no config file is found, and no path was specified,
-        default values get used.
-        """
         self.assertRaises(IOError, config.load, self.app)
+
+    @mock.patch('crane.config.CONFIG_PATH', new='/a/b/c/idontexist')
+    def test_default_config_path_doesnt_exist(self):
+        config.load(self.app)
 
     @mock.patch('os.environ.get', return_value=demo_data.demo_config_path, spec_set=True)
     def test_demo_config(self, mock_get):

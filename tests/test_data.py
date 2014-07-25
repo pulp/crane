@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import tempfile
+import time
 import unittest
 
 import mock
@@ -156,15 +157,26 @@ class TestMonitorDataDir(unittest.TestCase):
         self.assertRaises(Exception, data.monitor_data_dir, self.app)
         self.assertEquals(mock_load_all.call_count, 2)
 
+    @mock.patch('crane.data.time.sleep')
+    def test_data_dir_does_not_exist(self, mock_sleep):
+        class MyException(Exception):
+            pass
+        mock_sleep.side_effect = MyException()
+        self.app.config[config.KEY_DATA_DIR] = '/a/b/c/idontexist'
+
+        self.assertRaises(MyException, data.monitor_data_dir, self.app)
+
 
 class StartMonitoringDataDirTests(unittest.TestCase):
 
+    @mock.patch('crane.data.time.time')
     @mock.patch('crane.data.threading.Thread')
-    def test_monitoring_initialization(self, mock_thread):
+    def test_monitoring_initialization(self, mock_thread, mock_time):
+        mock_time.return_value = time.time()
         mock_app = mock.Mock()
         data.start_monitoring_data_dir(mock_app)
         mock_thread.assert_called_once_with(target=data.monitor_data_dir,
-                                            args=(mock_app,))
+                                            args=(mock_app, mock_time.return_value))
         created_thread = mock_thread.return_value
         created_thread.setDaemon.assert_called_once_with(True)
         self.assertTrue(created_thread.start.called)

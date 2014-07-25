@@ -80,7 +80,8 @@ Repository Data
 ---------------
 
 To change what data crane is using, add or remove files in the configured
-``data_dir`` as necessary, and then reload your web server.
+``data_dir`` as necessary.  The changes will be picked up automatically during the
+next polling done at the interval set by ``data_dir_polling_interval``
 
 
 Data Format

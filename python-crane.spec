@@ -21,6 +21,8 @@ BuildRequires: python-mock
 BuildRequires: python-unittest2
 
 Requires: python-flask >= 0.9
+Requires: m2crypto
+Requires: python-dateutil
 Requires: python-setuptools
 Requires(post): policycoreutils-python
 Requires(postun): policycoreutils-python

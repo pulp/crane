@@ -5,8 +5,8 @@
 %endif
 
 Name: python-crane
-Version: 0.1.0
-Release: 0.4.beta%{?dist}
+Version: 0.2.0
+Release: 1.beta%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
 License: GPLv2
@@ -85,6 +85,18 @@ fi
 
 
 %changelog
+* Fri Jul 25 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.2.0-1.beta
+- Monitor the data directory for changes (bcourt@redhat.com)
+- ensuring that setuptools excludes tests from a distribution package
+  (mhrivnak@redhat.com)
+- simplifying the config loading so that it uses a default config file
+  (mhrivnak@redhat.com)
+- Implementing the search API to use a Google Search Appliance backend.
+  (mhrivnak@redhat.com)
+- adding Dockerfile for cranebuilder (mhrivnak@redhat.com)
+- Add Entitlement support for Crane (bcourt@redhat.com)
+- Added Dockerfile for crane (mhrivnak@redhat.com)
+
 * Fri May 02 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.1.0-0.4.beta
 - Incrementing the release number. (mhrivnak@redhat.com)
 - adding selinux fcontext changes to spec file (mhrivnak@redhat.com)

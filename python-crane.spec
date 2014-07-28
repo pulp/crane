@@ -5,7 +5,7 @@
 %endif
 
 Name: python-crane
-Version: 0.2.0
+Version: 0.2.1
 Release: 1.beta%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
@@ -86,6 +86,11 @@ fi
 
 
 %changelog
+* Mon Jul 28 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.2.1-1.beta
+- Add python-rhsm to spec (bcourt@redhat.com)
+- Move indirect-requirements needed for the travis environment to a separate
+  requirements.txt file (bcourt@redhat.com)
+
 * Fri Jul 25 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.2.0-1.beta
 - Monitor the data directory for changes (bcourt@redhat.com)
 - ensuring that setuptools excludes tests from a distribution package

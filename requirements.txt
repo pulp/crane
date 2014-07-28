@@ -1,6 +1,3 @@
 Flask>=0.9
-M2Crypto>=0.21.0
-python-dateutil>=1.5
 # for pkg_resources
 setuptools
-iniparse>=0.4

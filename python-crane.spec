@@ -22,6 +22,7 @@ BuildRequires: python-unittest2
 
 Requires: python-flask >= 0.9
 Requires: python-setuptools
+Requires: python-rhsm
 Requires(post): policycoreutils-python
 Requires(postun): policycoreutils-python
 

@@ -3,19 +3,19 @@
 # Example usage:
 # $ sudo docker run -p 5000:80 -v /home/you/cranedata:/var/lib/crane/metadata pulp/crane
 
-FROM centos
+FROM centos:centos7
 MAINTAINER Pulp Team <pulp-list@redhat.com>
 
-RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+RUN yum -y install http://dl.fedoraproject.org/pub/epel/beta/7/x86_64/epel-release-7-1.noarch.rpm
 
 RUN yum update -y
 
-RUN yum install -y python-flask python-pip httpd mod_wsgi
+RUN yum install -y python-flask python-pip httpd mod_wsgi python-rhsm
 
 RUN mkdir -p /var/lib/crane/metadata/
 
-ADD deployment/apache22.conf /etc/httpd/conf.d/crane.conf
-ADD deployment/crane_el6.wsgi /usr/share/crane/crane.wsgi
+ADD deployment/apache24.conf /etc/httpd/conf.d/crane.conf
+ADD deployment/crane.wsgi /usr/share/crane/crane.wsgi
 
 ADD crane /usr/local/src/crane/crane
 ADD setup.py /usr/local/src/crane/

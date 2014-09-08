@@ -5,16 +5,16 @@
 #
 # $ sudo docker run -e "GIT_BRANCH=mhrivnak-packaging" -v /home/mhrivnak/delme:/tmp/tito pulp/cranebuilder
 
-FROM centos
+FROM centos:centos7
 MAINTAINER Pulp Team <pulp-list@redhat.com>
 
 ENV GIT_BRANCH master
 
-RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+RUN yum -y install http://dl.fedoraproject.org/pub/epel/beta/7/x86_64/epel-release-7-1.noarch.rpm
 
 RUN yum update -y
 
-RUN yum install -y python2-devel python-setuptools python-mock python-flask git tito
+RUN yum install -y git tito python-rhsm
 
 WORKDIR /root
 
@@ -22,4 +22,6 @@ RUN git clone https://github.com/pulp/crane.git
 
 WORKDIR /root/crane
 
-CMD cd /root/crane && git pull && git checkout $GIT_BRANCH && tito build --rpm
+RUN yum-builddep -y python-crane.spec
+
+CMD cd /root/crane && git pull && git checkout $GIT_BRANCH && tito build --rpm --test

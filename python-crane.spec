@@ -17,8 +17,6 @@ BuildArch: noarch
 
 BuildRequires: python2-devel
 BuildRequires: python-setuptools
-BuildRequires: python-mock
-BuildRequires: python-unittest2
 
 Requires: python-flask >= 0.9
 Requires: python-setuptools
@@ -35,10 +33,6 @@ settings.
 
 %prep
 %setup -q -n %{name}-%{version}
-
-
-%check
-%{__python2} setup.py test
 
 
 %build

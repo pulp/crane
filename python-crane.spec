@@ -5,8 +5,8 @@
 %endif
 
 Name: python-crane
-Version: 0.2.1
-Release: 1.beta%{?dist}
+Version: 0.2.2
+Release: 0.1.beta%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
 License: GPLv2
@@ -86,6 +86,11 @@ fi
 
 
 %changelog
+* Mon Sep 15 2014 Randy Barlow <rbarlow@redhat.com> 0.2.2-0.1.beta
+- updating pulp/cranebuilder for centos7 (mhrivnak@redhat.com)
+- updating the Dockerfile to use centos7 and add the python-rhsm dependency
+  (mhrivnak@redhat.com)
+
 * Mon Jul 28 2014 Michael Hrivnak <mhrivnak@redhat.com> 0.2.1-1.beta
 - Add python-rhsm to spec (bcourt@redhat.com)
 - Move indirect-requirements needed for the travis environment to a separate

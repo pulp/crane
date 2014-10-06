@@ -15,11 +15,11 @@ registry API to support "docker pull". Crane does not serve the actual image
 files, but instead serves 302 redirects to some other location where files are
 being served. A base file location URL can be specified per-repository.
 
-Crane loads its data from json files stored on-disk. It does not have a
+Crane loads its data from json files stored on disk. It does not have a
 database or use any other services. The json files can be generated with pulp
 by publishing a docker repository.
 
-Crane is a flask app written in python. It is very easy to deploy and has a
+Crane is a flask app written in Python. It is very easy to deploy and has a
 small footprint, so it is a great way to provide a read-only "docker pull" API
 that redirects to a static file service.
 

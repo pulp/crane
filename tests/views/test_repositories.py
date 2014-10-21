@@ -46,6 +46,21 @@ class TestRepository(base.BaseCraneAPITest):
         response_data = json.loads(response.data)
         self.assertTrue({'id': 'def456'} in response_data)
 
+    def test_images_no_namespace_docker_1_3_plus(self):
+        """
+        The "bar" repository ID does not have a namespace
+        """
+        response = self.test_client.get('/v1/repositories/library/bar/images')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+        self.assertEqual(response.headers['X-Docker-Registry-Config'], 'common')
+        self.assertEqual(response.headers['X-Docker-Registry-Version'], '0.6.6')
+        self.assertEqual(response.headers['X-Docker-Endpoints'], 'localhost:5000')
+
+        response_data = json.loads(response.data)
+        self.assertTrue({'id': 'def456'} in response_data)
+
     def test_images_404(self):
         response = self.test_client.get('/v1/repositories/idontexist/images')
 

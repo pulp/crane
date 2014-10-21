@@ -1,12 +1,11 @@
 import httplib
-import unittest
 
 import mock
 from rhsm import certificate, certificate2
+import unittest2 as unittest
 
 from crane import app_util
 from crane import exceptions
-from crane.data import Repo
 import demo_data
 
 from .views import base
@@ -156,3 +155,20 @@ class TestGetCertificate(FlaskContextBase):
         self.ctx.request.environ['SSL_CLIENT_CERT'] = data
         cert = app_util._get_certificate()
         self.assertTrue(isinstance(cert, certificate2.EntitlementCertificate))
+
+
+class TestValidateAndTransformRepoID(unittest.TestCase):
+    def test_more_than_one_slash(self):
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            app_util.validate_and_transform_repoid('a/b/c')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
+
+    def test_library_namespace(self):
+        ret = app_util.validate_and_transform_repoid('library/centos')
+
+        self.assertEqual(ret, 'centos')
+
+    def test_normal(self):
+        ret = app_util.validate_and_transform_repoid('foo/bar')
+
+        self.assertEqual(ret, 'foo/bar')

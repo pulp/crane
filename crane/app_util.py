@@ -147,3 +147,28 @@ def get_data():
         request.crane_data = data.response_data
 
     return request.crane_data
+
+
+def validate_and_transform_repoid(repo_id):
+    """
+    Validates that the repo ID does not contain more than one slash, and removes
+    the default "library" namespace if present.
+
+    :param repo_id: unique ID for the repository. May contain 0 or 1 of the "/"
+                    character. For repo IDs that do not contain a slash, the
+                    docker client currently prepends "library/" when making
+                    this call. This function strips that off.
+    :type  repo_id: basestring
+
+    :return:    repo ID without the "library" namespace
+    :rtype:     basestring
+    """
+    # a valid repository ID will have zero or one slash
+    if len(repo_id.split('/')) > 2:
+        raise exceptions.HTTPError(httplib.NOT_FOUND)
+
+    # for repositories that do not have a "/" in the name, docker will add
+    # "library/" to the beginning of the repository path.
+    if repo_id.startswith('library/'):
+        return repo_id[len('library/'):]
+    return repo_id

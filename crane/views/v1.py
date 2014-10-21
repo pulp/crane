@@ -2,6 +2,7 @@ import httplib
 
 from flask import Blueprint, json, current_app, redirect, request
 
+from .. import app_util
 from .. import config
 from .. import exceptions
 from ..api import repository, images
@@ -62,9 +63,7 @@ def repo_images(repo_id):
     :return:    json string containing a list of image IDs
     :rtype:     basestring
     """
-    # a valid repository ID will have zero or one slash
-    if len(repo_id.split('/')) > 2:
-        raise exceptions.HTTPError(httplib.NOT_FOUND)
+    repo_id = app_util.validate_and_transform_repoid(repo_id)
 
     images_in_repo = repository.get_images_for_repo(repo_id)
     response = current_app.make_response(images_in_repo)
@@ -90,14 +89,7 @@ def repo_tags(repo_id):
     :return:    json string containing an object mapping tag names to image IDs
     :rtype:     basestring
     """
-    # a valid repository ID will have zero or one slash
-    if len(repo_id.split('/')) > 2:
-        raise exceptions.HTTPError(httplib.NOT_FOUND)
-
-    # for repositories that do not have a "/" in the name, docker will add
-    # "library/" to the beginning of the repository path only for this call.
-    if repo_id.startswith('library/'):
-        repo_id = repo_id[len('library/'):]
+    repo_id = app_util.validate_and_transform_repoid(repo_id)
 
     return repository.get_tags_for_repo(repo_id)
 

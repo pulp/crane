@@ -6,7 +6,7 @@
 
 Name: python-crane
 Version: 0.2.2
-Release: 0.2.beta%{?dist}
+Release: 0.3.beta%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
 License: GPLv2
@@ -80,6 +80,12 @@ fi
 
 
 %changelog
+* Wed Oct 22 2014 Chris Duryee <cduryee@redhat.com> 0.2.2-0.3.beta
+- the /v1/repositories/<repo_id>/images call now handles the default "library"
+  namespace (mhrivnak@redhat.com)
+- review improvements (mhrivnak@redhat.com)
+- Adding a basic "what is crane?" section to the README (mhrivnak@redhat.com)
+
 * Mon Sep 15 2014 Randy Barlow <rbarlow@redhat.com> 0.2.2-0.2.beta
 - Do not run unit tests during RPM build (cduryee@redhat.com)
 

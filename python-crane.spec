@@ -80,6 +80,9 @@ fi
 
 
 %changelog
+* Fri Nov 21 2014 Chris Duryee <cduryee@redhat.com> 0.2.2-1
+- Bump release to 1 (cduryee@redhat.com)
+
 * Wed Oct 22 2014 Chris Duryee <cduryee@redhat.com> 0.2.2-0.3.beta
 - the /v1/repositories/<repo_id>/images call now handles the default "library"
   namespace (mhrivnak@redhat.com)

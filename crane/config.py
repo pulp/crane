@@ -13,6 +13,8 @@ _logger = logging.getLogger(__name__)
 CONFIG_PATH = '/etc/crane.conf'
 # the environment variable whose value can override the CONFIG_PATH
 CONFIG_ENV_NAME = 'CRANE_CONFIG_PATH'
+# the environment variable whose value can override the debug setting
+DEBUG_ENV_NAME = 'CRANE_DEBUG'
 # the resource path for the config file containing default values
 DEFAULT_CONFIG_RESOURCE = 'data/default_config.conf'
 
@@ -86,6 +88,9 @@ def read_config(app, parser):
         for key in (KEY_DATA_POLLING_INTERVAL, ):
             with supress(NoOptionError):
                 app.config[key] = int(parser.get(SECTION_GENERAL, key))
+
+    app.config['DEBUG'] = app.config.get('DEBUG') or \
+                          os.environ.get(DEBUG_ENV_NAME, '').lower() == 'true'
 
     # "gsa" (Google Search Appliance) section settings
     with supress(NoSectionError):

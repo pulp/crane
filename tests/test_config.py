@@ -11,8 +11,9 @@ class TestLoad(unittest.TestCase):
         self.app = mock.MagicMock()
         self.app.config = {}
 
-    @mock.patch('os.environ.get', return_value='/dev/null', spec_set=True)
-    def test_defaults(self, mock_get):
+    @mock.patch('os.environ.get', new={config.CONFIG_ENV_NAME: '/dev/null'}.get,
+                spec_set=True)
+    def test_defaults(self):
         """
         test that when no config options are specified, default values get used.
         """
@@ -37,14 +38,36 @@ class TestLoad(unittest.TestCase):
     def test_default_config_path_doesnt_exist(self):
         config.load(self.app)
 
-    @mock.patch('os.environ.get', return_value=demo_data.demo_config_path, spec_set=True)
-    def test_demo_config(self, mock_get):
+    @mock.patch('os.environ.get', new={config.CONFIG_ENV_NAME: demo_data.demo_config_path}.get,
+                spec_set=True)
+    def test_demo_config(self):
         config.load(self.app)
 
         self.assertTrue(self.app.config.get('DEBUG') is True)
 
         configured_gsa_url = self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL)
         self.assertEqual(configured_gsa_url, 'http://pulpproject.org/search')
+
+    @mock.patch('crane.config.CONFIG_PATH', new='/a/b/c/idontexist')
+    @mock.patch('os.environ.get', new={config.DEBUG_ENV_NAME: 'true'}.get, spec_set=True)
+    def test_debug_env_variable_true(self):
+        config.load(self.app)
+
+        self.assertTrue(self.app.config.get('DEBUG') is True)
+
+    @mock.patch('crane.config.CONFIG_PATH', new='/a/b/c/idontexist')
+    @mock.patch('os.environ.get', new={config.DEBUG_ENV_NAME: 'False'}.get, spec_set=True)
+    def test_debug_env_variable_false(self):
+        config.load(self.app)
+
+        self.assertTrue(self.app.config.get('DEBUG') is False)
+
+    @mock.patch('crane.config.CONFIG_PATH', new='/a/b/c/idontexist')
+    @mock.patch('os.environ.get', new={config.DEBUG_ENV_NAME: 'True'}.get, spec_set=True)
+    def test_debug_env_variable_wrong_case(self):
+        config.load(self.app)
+
+        self.assertTrue(self.app.config.get('DEBUG') is True)
 
 
 class TestSupress(unittest.TestCase):

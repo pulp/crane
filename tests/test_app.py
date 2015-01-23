@@ -6,7 +6,7 @@ import unittest2
 
 from crane import app, config, app_util, exceptions, search
 from crane.search import GSA
-from crane.views import v1
+from crane.views import crane, v1
 from . import demo_data
 
 
@@ -27,6 +27,7 @@ class TestCreateApp(unittest2.TestCase):
 
     def test_blueprints_loaded(self, mock_environ_get):
         self.assertTrue(v1.section.name in self.app.blueprints)
+        self.assertTrue(crane.section.name in self.app.blueprints)
 
     def test_handlers_added(self, mock_environ_get):
         handlers = self.app.error_handler_spec[None][None]

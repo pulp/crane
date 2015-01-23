@@ -5,6 +5,32 @@ from crane import config
 
 
 class TestRepository(base.BaseCraneAPITest):
+    def test_repositories(self):
+        response = self.test_client.get('/v1/repositories')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+        self.assertEqual(response.headers['X-Docker-Registry-Config'], 'common')
+        self.assertEqual(response.headers['X-Docker-Registry-Version'], '0.6.6')
+
+        response_data = json.loads(response.data)
+        expected_data = {'baz': {'protected': True,
+                                 'tags': {'latest': 'baz123'},
+                                 'image-ids': ['baz123']},
+                         'bar': {'protected': False,
+                                 'tags': {'latest': 'def456'},
+                                 'image-ids': ['def456']},
+                         'qux': {'protected': True,
+                                 'tags': {'latest': 'qux123'},
+                                 'image-ids': ['qux123']},
+                         'redhat/foo': {'protected': False,
+                                        'tags': {'latest': 'abc123'},
+                                        'image-ids': ['abc123', 'xyz789']}}
+
+        self.assertEqual(response_data['baz'], expected_data['baz'])
+        self.assertEqual(response_data['bar'], expected_data['bar'])
+        self.assertEqual(response_data['qux'], expected_data['qux'])
+        self.assertEqual(response_data['redhat/foo'], expected_data['redhat/foo'])
+
     def test_images(self):
         response = self.test_client.get('/v1/repositories/redhat/foo/images')
 

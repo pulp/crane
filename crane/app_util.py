@@ -2,7 +2,7 @@ import httplib
 import logging
 from functools import wraps
 
-from flask import request
+from flask import json, request
 from rhsm import certificate
 from rhsm import certificate2
 
@@ -147,6 +147,31 @@ def get_data():
         request.crane_data = data.response_data
 
     return request.crane_data
+
+
+def get_repositories():
+    """
+    Get the current data used for processing requests from the flask request context
+    and format it to display basic information about image ids and tags associated
+    with each repository.
+
+    Value corresponding to each key(repo-registry-id) is a dictionary itself
+    with the following format:
+    {'image-ids': [<image-id1>, <image-id2>, ...],
+     'tags': {<tag-id1>: <tag1>, <tag-id2>: <tag2>, ...}
+     'protected': true/false}
+
+    :return: dictionary keyed by repo-registry-ids
+    :rtype: dict
+    """
+    all_repo_data = get_data()['repos']
+    relevant_repo_data = {}
+    for repo_registry_id, repo in all_repo_data.items():
+        image_ids = [image_json['id'] for image_json in json.loads(repo.images_json)]
+        relevant_repo_data[repo_registry_id] = {'image-ids': image_ids,
+                                                'tags': json.loads(repo.tags_json),
+                                                'protected': repo.protected}
+    return relevant_repo_data
 
 
 def validate_and_transform_repoid(repo_id):

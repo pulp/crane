@@ -48,6 +48,23 @@ def ping():
     return response
 
 
+@section.route('/repositories')
+def repositories():
+    """
+    Returns a json document containing a dictionary of repositories served by crane
+    and keyed by the repo-registry-id which is unique for each repository.
+
+    TODO: Implement html view. We should return it as the default view and
+          following json response should be returned if request.headers['Content-Type']
+          is 'application/json'
+
+    :return:    json string containing a list of docker repositories
+    :rtype:     basestring
+    """
+    repo_data = app_util.get_repositories()
+    return json.dumps(repo_data)
+
+
 @section.route('/repositories/<path:repo_id>/images')
 def repo_images(repo_id):
     """

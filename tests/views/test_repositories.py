@@ -6,11 +6,9 @@ from crane import config
 
 class TestRepository(base.BaseCraneAPITest):
     def test_repositories(self):
-        response = self.test_client.get('/v1/repositories')
+        response = self.test_client.get('/crane/repositories')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['Content-Type'], 'application/json')
-        self.assertEqual(response.headers['X-Docker-Registry-Config'], 'common')
-        self.assertEqual(response.headers['X-Docker-Registry-Version'], '0.6.6')
 
         response_data = json.loads(response.data)
         expected_data = {'baz': {'protected': True,

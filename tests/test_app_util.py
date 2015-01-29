@@ -117,7 +117,7 @@ class TestAuthorizeImageId(FlaskContextBase):
         mock_get_cert.return_value = cert
 
         with self.assertRaises(exceptions.HTTPError) as assertion:
-            result = mock_image_func('qux123')
+            mock_image_func('qux123')
         self.assertEquals(assertion.exception.status_code, httplib.NOT_FOUND)
 
 
@@ -185,7 +185,7 @@ class TestValidateGetRepositories(unittest.TestCase):
                     protected=False)
         mock_get_data.return_value = {'repos': {"test-repo": repo}}
         ret = app_util.get_repositories()
-        self.assertEqual(ret['test-repo']['image-ids'], ['test-image1', 'test-image2'])
+        self.assertEqual(ret['test-repo']['image_ids'], ['test-image1', 'test-image2'])
         self.assertEqual(ret['test-repo']['tags'], {'tag1': 'test-image1'})
         self.assertEqual(ret['test-repo']['protected'], False)
 

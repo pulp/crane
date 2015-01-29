@@ -3,12 +3,12 @@ import sys
 
 from flask import Flask
 
-from .views import crane, v1
-from . import config
-from . import data
-from . import exceptions
-from . import app_util
-from . import search
+from crane.views import crane, v1
+from crane import config
+from crane import data
+from crane import exceptions
+from crane import app_util
+from crane import search
 
 
 def create_app():

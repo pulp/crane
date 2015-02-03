@@ -4,7 +4,7 @@ import unittest2
 import mock
 
 from crane import config, search
-from crane.search import SearchBackend, GSA
+from crane.search import SearchBackend, GSA, Solr
 
 
 class TestLoadConfig(unittest2.TestCase):
@@ -31,3 +31,15 @@ class TestLoadConfig(unittest2.TestCase):
 
         self.assertIsInstance(search.backend, GSA)
         self.assertEqual(search.backend.url, fake_url)
+
+    def test_solr(self):
+        mock_app = mock.MagicMock()
+        fake_url = 'http://pulpproject.org/search'
+        mock_app.config = {
+            config.SECTION_SOLR: {config.KEY_URL: fake_url},
+        }
+
+        search.load_config(mock_app)
+
+        self.assertIsInstance(search.backend, Solr)
+        self.assertEqual(search.backend.url_template, fake_url)

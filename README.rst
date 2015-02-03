@@ -69,6 +69,13 @@ Example:
 Search
 ------
 
+Only one of the following search backends should be configured. If multiple
+backends are configured, crane will attempt to use the first one whose configuration
+it finds, and the discovery order is not guaranteed to be consistent.
+
+GSA
+~~~
+
 The API supporting ``docker search`` can be enabled by configuring a Google
 Search Appliance for use by crane. In crane's configuration file, a section
 ``[gsa]`` must exist with key ``url``. The URL will be used in a GET request,
@@ -86,6 +93,40 @@ Example:
 The XML returned by the GSA must contain values for ``portal_name`` and
 ``portal_short_description``, which will be turned into the name and
 description returned by crane's search API.
+
+Solr
+~~~~
+
+The API supporting ``docker search`` can be enabled by configuring a Solr
+deployment for use by crane. In crane's configuration file, a section
+``[solr]`` must exist with key ``url``. The URL will be used in a GET request,
+and it must contain the string ``{0}`` as a placeholder where the search string
+will be inserted.
+
+Example:
+
+::
+
+  [solr]
+  url: https://path/to/my/search?x={0}
+
+.. warning:: crane does not currently verify the SSL certificate of the Solr service
+
+The JSON returned by the request must contain the following minimum data
+structure. Any additional keys and values will be ignored.
+
+::
+
+  {
+    "response": {
+      "docs": [
+        {
+          "allTitle": "pulp/worker",
+          "ir_description": "A short description to display in the terminal"
+        }
+      ]
+    }
+  }
 
 
 Deployment

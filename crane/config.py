@@ -27,6 +27,7 @@ KEY_ENDPOINT = 'endpoint'
 
 # google search appliance settings
 SECTION_GSA = 'gsa'
+SECTION_SOLR = 'solr'
 KEY_URL = 'url'
 
 
@@ -99,6 +100,14 @@ def read_config(app, parser):
         for key in (KEY_URL,):
             with supress(NoOptionError):
                 section[key] = parser.get(SECTION_GSA, key)
+
+    # "solr" section settings
+    with supress(NoSectionError):
+        section = app.config.setdefault(SECTION_SOLR, {})
+
+        for key in (KEY_URL,):
+            with supress(NoOptionError):
+                section[key] = parser.get(SECTION_SOLR, key)
 
 
 @contextmanager

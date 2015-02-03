@@ -1,9 +1,16 @@
+import os
 import unittest
 
 import mock
 
 from crane import config
 import demo_data
+
+
+basepath = os.path.dirname(__file__)
+
+gsa_config_path = os.path.join(basepath, 'data/gsa/crane.conf')
+solr_config_path = os.path.join(basepath, 'data/solr/crane.conf')
 
 
 class TestLoad(unittest.TestCase):
@@ -25,6 +32,22 @@ class TestLoad(unittest.TestCase):
         self.assertEqual(self.app.config.get(config.KEY_DATA_POLLING_INTERVAL), 60)
         configured_gsa_url = self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL)
         self.assertEqual(configured_gsa_url, '')
+        configured_solr_url = self.app.config.get(config.SECTION_SOLR, {}).get(config.KEY_URL)
+        self.assertEqual(configured_solr_url, '')
+
+    @mock.patch('os.environ.get', new={config.CONFIG_ENV_NAME: solr_config_path}.get,
+                spec_set=True)
+    def test_solr_url(self):
+        config.load(self.app)
+
+        self.assertEqual(self.app.config.get(config.SECTION_SOLR, {}).get(config.KEY_URL), 'http://foo/bar')
+
+    @mock.patch('os.environ.get', new={config.CONFIG_ENV_NAME: gsa_config_path}.get,
+                spec_set=True)
+    def test_gsa_url(self):
+        config.load(self.app)
+
+        self.assertEqual(self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL), 'http://foo/bar')
 
     @mock.patch('pkg_resources.resource_stream', side_effect=IOError, spec_set=True)
     def test_defaults_not_found(self, mock_resource_stream):

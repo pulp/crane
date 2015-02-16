@@ -6,6 +6,7 @@ import unittest2 as unittest
 
 from crane import app_util
 from crane import exceptions
+from crane.data import Repo
 import demo_data
 
 from .views import base
@@ -120,7 +121,6 @@ class TestAuthorizeImageId(FlaskContextBase):
         self.assertEquals(assertion.exception.status_code, httplib.NOT_FOUND)
 
 
-
 class TestHandler(unittest.TestCase):
 
     def test_default_message(self):
@@ -172,3 +172,25 @@ class TestValidateAndTransformRepoID(unittest.TestCase):
         ret = app_util.validate_and_transform_repoid('foo/bar')
 
         self.assertEqual(ret, 'foo/bar')
+
+
+class TestValidateGetRepositories(unittest.TestCase):
+
+    @mock.patch('crane.app_util.get_data')
+    def test_get_repositories(self, mock_get_data):
+        repo = Repo(url="",
+                    images_json="[{\"id\": \"test-image1\"}, {\"id\": \"test-image2\"}]",
+                    tags_json="{\"tag1\": \"test-image1\"}",
+                    url_path="",
+                    protected=False)
+        mock_get_data.return_value = {'repos': {"test-repo": repo}}
+        ret = app_util.get_repositories()
+        self.assertEqual(ret['test-repo']['image-ids'], ['test-image1', 'test-image2'])
+        self.assertEqual(ret['test-repo']['tags'], {'tag1': 'test-image1'})
+        self.assertEqual(ret['test-repo']['protected'], False)
+
+    @mock.patch('crane.app_util.get_data')
+    def test_get_repositories_empty(self, mock_get_data):
+        mock_get_data.return_value = {'repos': {}}
+        ret = app_util.get_repositories()
+        self.assertEqual(ret, {})

@@ -5,6 +5,59 @@ from crane import config
 
 
 class TestRepository(base.BaseCraneAPITest):
+    def test_repositories_json(self):
+        response = self.test_client.get('/crane/repositories',
+                                        headers={'Content-Type': 'application/json'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+
+        response_data = json.loads(response.data)
+        expected_data = {'baz': {'protected': True,
+                                 'tags': {'latest': 'baz123'},
+                                 'image_ids': ['baz123']},
+                         'bar': {'protected': False,
+                                 'tags': {'latest': 'def456'},
+                                 'image_ids': ['def456']},
+                         'qux': {'protected': True,
+                                 'tags': {'latest': 'qux123'},
+                                 'image_ids': ['qux123']},
+                         'redhat/foo': {'protected': False,
+                                        'tags': {'latest': 'abc123'},
+                                        'image_ids': ['abc123', 'xyz789']}}
+
+        self.assertEqual(response_data['baz'], expected_data['baz'])
+        self.assertEqual(response_data['bar'], expected_data['bar'])
+        self.assertEqual(response_data['qux'], expected_data['qux'])
+        self.assertEqual(response_data['redhat/foo'], expected_data['redhat/foo'])
+
+    def test_repositories_html(self):
+        response = self.test_client.get('/crane/repositories')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'text/html; charset=utf-8')
+        expected_data = {'baz': {'protected': True,
+                                 'tags': {'latest': 'baz123'},
+                                 'image_ids': ['baz123']},
+                         'bar': {'protected': False,
+                                 'tags': {'latest': 'def456'},
+                                 'image_ids': ['def456']},
+                         'qux': {'protected': True,
+                                 'tags': {'latest': 'qux123'},
+                                 'image_ids': ['qux123']},
+                         'redhat/foo': {'protected': False,
+                                        'tags': {'latest': 'abc123'},
+                                        'image_ids': ['abc123', 'xyz789']}}
+        # Assert that all repo ids in json are present in the HTML
+        for repo_id, repo_info in expected_data.iteritems():
+            self.assertTrue(response.data.find(repo_id))
+            # Assert all tagged images are present
+            for tag, image_id in repo_info['tags'].iteritems():
+                self.assertTrue(response.data.find(tag))
+                self.assertTrue(response.data.find(image_id))
+            # Assert all the image ids for a repo are present
+            for image_id in repo_info['image_ids']:
+                self.assertTrue(response.data.find(image_id))
+
+
     def test_images(self):
         response = self.test_client.get('/v1/repositories/redhat/foo/images')
 

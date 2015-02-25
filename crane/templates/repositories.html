@@ -1,0 +1,46 @@
+{# _crane/templates/repositories.html_ #}
+{% extends "layout.html" %}
+{% block title %}Repositories {% endblock %}
+{% block body %}
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          {% for repo_name, repo_info in repos_json.iteritems() %} 
+          <div>
+          <h3><strong>Repository id: </strong>{{ repo_name }}</h3>
+            <h3><strong>Protected: </strong>{{ repo_info.protected }}</h3>
+          </div>
+      <table class="datatable table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>Tag</th>
+            <th>Image Id</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tag, image_id in repo_info.tags.iteritems() %}
+          <tr class="gradeX">
+            <td>
+              {{ tag }}
+            </td>
+              <td>
+                  {{ image_id }}
+              </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+            <hr>
+      {% endfor %}
+        </div><!-- /col -->
+      </div><!-- /row -->
+    </div><!-- /container -->
+            <script>
+      // Initialize Datatables
+      $(document).ready( function() {
+        $('.datatable').dataTable( {
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+    } );
+      });
+    </script>
+{% endblock %}

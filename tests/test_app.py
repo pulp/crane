@@ -6,7 +6,7 @@ import unittest2
 
 from crane import app, config, app_util, exceptions, search
 from crane.search import GSA
-from crane.views import v1
+from crane.views import crane, v1
 from . import demo_data
 
 
@@ -27,6 +27,7 @@ class TestCreateApp(unittest2.TestCase):
 
     def test_blueprints_loaded(self, mock_environ_get):
         self.assertTrue(v1.section.name in self.app.blueprints)
+        self.assertTrue(crane.section.name in self.app.blueprints)
 
     def test_handlers_added(self, mock_environ_get):
         handlers = self.app.error_handler_spec[None][None]
@@ -61,14 +62,14 @@ class TestInitLogging(unittest2.TestCase):
         mock_add_handler.assert_called_once_with(mock_add_handler.call_args[0][0])
 
 
+@mock.patch('crane.app.init_logging')
 @mock.patch('logging.Logger.setLevel', spec_set=True)
 class TestSetLogLevel(unittest2.TestCase):
     def setUp(self):
         super(TestSetLogLevel, self).setUp()
-        with mock.patch('crane.app.init_logging') as mock_init_logging:
-            self.app = app.create_app()
+        self.app = app.create_app()
 
-    def test_debug(self, mock_set_level):
+    def test_debug(self, mock_set_level, mock_init_logging):
         self.app.config['DEBUG'] = True
 
         app.set_log_level(self.app)
@@ -76,7 +77,7 @@ class TestSetLogLevel(unittest2.TestCase):
         # make sure it set the level to debug
         mock_set_level.assert_called_once_with(logging.DEBUG)
 
-    def test_not_debug(self, mock_set_level):
+    def test_not_debug(self, mock_set_level, mock_init_logging):
         self.app.config['DEBUG'] = False
 
         app.set_log_level(self.app)

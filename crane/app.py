@@ -3,12 +3,12 @@ import sys
 
 from flask import Flask
 
-from .views import v1
-from . import config
-from . import data
-from . import exceptions
-from . import app_util
-from . import search
+from crane.views import crane, v1
+from crane import config
+from crane import data
+from crane import exceptions
+from crane import app_util
+from crane import search
 
 
 def create_app():
@@ -22,6 +22,7 @@ def create_app():
 
     app = Flask(__name__)
     app.register_blueprint(v1.section)
+    app.register_blueprint(crane.section)
     app.register_error_handler(exceptions.HTTPError, app_util.http_error_handler)
 
     config.load(app)

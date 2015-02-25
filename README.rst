@@ -157,3 +157,70 @@ contains metadata about a docker repository.
 
 These files are produced by a publish action in
 `Pulp <http://www.pulpproject.org>`_.
+
+Crane Admin
+-----------
+
+A list of images served by Crane can be obtained by opening ``/crane/repositories`` in a web
+browser or with ``curl``. The default Apache configuration distributed with Crane restricts access
+to this URL from ``localhost`` only; when accessed from a web browser, repositories and their
+images are listed on a web page. This URL accepts an optional "Content-Type" header. When
+"application/json" is specified, the application responds with JSON. Here is an example:
+
+.. code-block::
+
+    {
+        "pulpdemo-busybox": {
+            "image_ids": [
+                "2982ec56c8d910121e7594ca7890b062f6d37fadf7575f6a6f3adbabbafac9f5",
+                "2aed48a4e41d3931167146e9b7492aa5639e7f6478be9eac584726ecec6824ed",
+                "492dad4279bae5bb73648efe9bf467b2cfa8bab1d593595226e3e7a95d9f6c35",
+                "4986bf8c15363d1c5d15512d5266f8777bfba4974ac56e3270e7760f6f0a8125",
+                "511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158",
+                "618b1fc306b06d11e192812ede4c685dcbf886d2a0189e9a552c550fd7663df0",
+                "df7546f9f060a2268024c8a230d8639878585defcc1bc6f79d2728a13957871b",
+                "e8a999563c473139dc74d02eefb7b13ffea63799bc05b8936b9ad7119b37742f",
+                "ea13149945cb6b1e746bf28032f02e9b5a793523481a0a18645fc77ad53c4ea2",
+                "f6169d24347d30de48e4493836bec15c78a34f08cc7f17d6a45a19d68dc283ac"
+            ],
+            "protected": false,
+            "tags": {
+                "buildroot-2013.08.1": "2982ec56c8d910121e7594ca7890b062f6d37fadf7575f6a6f3adbabbafac9f5",
+                "buildroot-2014.02": "2aed48a4e41d3931167146e9b7492aa5639e7f6478be9eac584726ecec6824ed",
+                "latest": "4986bf8c15363d1c5d15512d5266f8777bfba4974ac56e3270e7760f6f0a8125",
+                "ubuntu-12.04": "492dad4279bae5bb73648efe9bf467b2cfa8bab1d593595226e3e7a95d9f6c35",
+                "ubuntu-14.04": "f6169d24347d30de48e4493836bec15c78a34f08cc7f17d6a45a19d68dc283ac"
+            }
+        },
+        "pulpdemo-busybox2": {
+            "image_ids": [
+                "2982ec56c8d910121e7594ca7890b062f6d37fadf7575f6a6f3adbabbafac9f5",
+                "2aed48a4e41d3931167146e9b7492aa5639e7f6478be9eac584726ecec6824ed",
+                "492dad4279bae5bb73648efe9bf467b2cfa8bab1d593595226e3e7a95d9f6c35",
+                "4986bf8c15363d1c5d15512d5266f8777bfba4974ac56e3270e7760f6f0a8125",
+                "511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158",
+                "618b1fc306b06d11e192812ede4c685dcbf886d2a0189e9a552c550fd7663df0",
+                "df7546f9f060a2268024c8a230d8639878585defcc1bc6f79d2728a13957871b",
+                "e8a999563c473139dc74d02eefb7b13ffea63799bc05b8936b9ad7119b37742f",
+                "ea13149945cb6b1e746bf28032f02e9b5a793523481a0a18645fc77ad53c4ea2",
+                "f6169d24347d30de48e4493836bec15c78a34f08cc7f17d6a45a19d68dc283ac"
+            ],
+            "protected": false,
+            "tags": {
+                "buildroot-2013.08.1": "2a4d48a4e51d39a1167146e9b7492aa5639e7f6478be9eac584726ecec6824ed",
+                "latest": "4986bf8c15363d1c5d15512d5266f8777bfba4974ac56e3270e7760f6f0a8125",
+                "ubuntu-12.04": "492dad4279bae5bb73648efe9bf467b2cfa8bab1d593595226e3e7a95d9f6c35",
+                "ubuntu-14.04": "f6169d24347d30de48e4493836bec15c78a34f08cc7f17d6a45a19d68dc283ac"
+            }
+        }
+    }
+
+
+Attribution
+-----------
+
+The image of the crane displayed in the corner of the web interface is used with permission from
+user Laitche under `Creative Commons Attribution-Share Alike 3.0 Unported
+<http://creativecommons.org/licenses/by-sa/3.0/deed.en>`_ licence. The original file can be found
+`here
+<http://commons.wikimedia.org/wiki/File:Laitche_Origami_Cranes_-_The_beige_One_-_right.png>`_.

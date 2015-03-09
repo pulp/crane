@@ -23,7 +23,22 @@ class TestSearchBackend(unittest2.TestCase):
         self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
     def test_format_result(self):
-        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux')
+        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                   **base.SearchResult.result_defaults)
+
+        ret = self.backend._format_result(result)
+
+        self.assertDictEqual(ret, {
+            'name': 'rhel',
+            'description': 'Red Hat Enterprise Linux',
+            'is_trusted': False,
+            'is_official': False,
+            'star_count': 0,
+        })
+
+    def test_non_defaults(self):
+        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                   True, True, 8)
 
         ret = self.backend._format_result(result)
 
@@ -32,12 +47,13 @@ class TestSearchBackend(unittest2.TestCase):
             'description': 'Red Hat Enterprise Linux',
             'is_trusted': True,
             'is_official': True,
-            'star_count': 5,
+            'star_count': 8,
         })
 
     @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
     def test_filter_authorized_result(self, mock_is_authorized):
-        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux')
+        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                   **base.SearchResult.result_defaults)
 
         ret = self.backend._filter_result(result)
 
@@ -46,7 +62,8 @@ class TestSearchBackend(unittest2.TestCase):
 
     @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
     def test_filter_nonauthorized_result(self, mock_is_authorized):
-        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux')
+        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                   **base.SearchResult.result_defaults)
         mock_is_authorized.side_effect = exceptions.HTTPError(httplib.NOT_FOUND)
 
         ret = self.backend._filter_result(result)

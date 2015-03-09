@@ -105,7 +105,7 @@ class GSA(HTTPBackend):
                         description = mt.attrib['V']
 
                 if name is not None:
-                    yield SearchResult(name, description)
+                    yield SearchResult(name, description, **SearchResult.result_defaults)
 
         except Exception:
             _logger.exception('could not parse xml')

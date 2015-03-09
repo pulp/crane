@@ -58,7 +58,11 @@ class Solr(HTTPBackend):
         try:
             data = json.loads(body)
             for item in data['response']['docs']:
-                yield SearchResult(item['allTitle'], item['ir_description'])
+                trusted = item.get('ir_automated', SearchResult.result_defaults['is_trusted'])
+                automated = item.get('ir_official', SearchResult.result_defaults['is_official'])
+                stars = item.get('ir_stars', SearchResult.result_defaults['star_count'])
+                yield SearchResult(item['allTitle'], item['ir_description'],
+                                   trusted, automated, stars)
         except Exception, e:
             _logger.error('could not parse response body: %s' % e)
             _logger.exception('could not parse response')

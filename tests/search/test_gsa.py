@@ -41,7 +41,8 @@ class TestSearch(BaseGSATest):
     @mock.patch('crane.search.gsa.GSA._get_data', spec_set=True)
     @mock.patch('crane.search.gsa.GSA._parse_xml')
     def test_workflow_filter_true(self, mock_parse_xml, mock_get_data, mock_filter):
-        mock_parse_xml.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux')]
+        mock_parse_xml.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                                    **SearchResult.result_defaults)]
 
         ret = self.gsa.search('foo')
 
@@ -49,16 +50,17 @@ class TestSearch(BaseGSATest):
         self.assertDictEqual(list(ret)[0], {
             'name': 'rhel',
             'description': 'Red Hat Enterprise Linux',
-            'star_count': 5,
-            'is_trusted': True,
-            'is_official': True,
+            'star_count': 0,
+            'is_trusted': False,
+            'is_official': False,
         })
 
     @mock.patch('crane.search.gsa.GSA._filter_result', spec_set=True, return_value=False)
     @mock.patch('crane.search.gsa.GSA._get_data', spec_set=True)
     @mock.patch('crane.search.gsa.GSA._parse_xml')
     def test_workflow_filter_false(self, mock_parse_xml, mock_get_data, mock_filter):
-        mock_parse_xml.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux')]
+        mock_parse_xml.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                                    **SearchResult.result_defaults)]
 
         ret = self.gsa.search('foo')
 
@@ -97,8 +99,10 @@ class TestParseXML(BaseGSATest):
         items = list(generator)
 
         self.assertListEqual(items, [
-            SearchResult('rhel7.0', 'Red Hat Enterprise Linux 7 base image'),
-            SearchResult('redhat/rhel7.0', 'Red Hat Enterprise Linux 7 base image'),
+            SearchResult('rhel7.0', 'Red Hat Enterprise Linux 7 base image',
+                         **SearchResult.result_defaults),
+            SearchResult('redhat/rhel7.0', 'Red Hat Enterprise Linux 7 base image',
+                         **SearchResult.result_defaults),
         ])
 
     def test_no_description(self):
@@ -107,7 +111,7 @@ class TestParseXML(BaseGSATest):
         items = list(generator)
 
         self.assertListEqual(items, [
-            SearchResult('rhel7.0', ''),
+            SearchResult('rhel7.0', '', **SearchResult.result_defaults),
         ])
 
     def test_handle_exception(self):

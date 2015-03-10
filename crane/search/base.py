@@ -44,14 +44,7 @@ class SearchBackend(object):
                     docker expects to receive.
         :rtype:     dict
         """
-        return {
-            'name': result.name,
-            'description': result.description,
-            'is_trusted': True,
-            'is_official': True,
-            # because we can
-            'star_count': 5,
-        }
+        return dict(result._asdict())
 
     def _filter_result(self, result):
         """
@@ -115,4 +108,6 @@ class HTTPBackend(SearchBackend):
 
 # this data structure should be used to return search results in a uniform
 # and well-defined way.
-SearchResult = namedtuple('SearchResult', ['name', 'description'])
+class SearchResult(namedtuple('SearchResult', ['name', 'description', 'is_trusted',
+                                               'is_official', 'star_count'])):
+    result_defaults = {'is_trusted': False, 'is_official': False, 'star_count': 0}

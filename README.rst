@@ -113,7 +113,8 @@ Example:
 .. warning:: crane does not currently verify the SSL certificate of the Solr service
 
 The JSON returned by the request must contain the following minimum data
-structure. Any additional keys and values will be ignored.
+structure. ``ir_automated``, ``ir_official``, and ``ir_stars`` are optional and
+will default to ``False``, ``False``, and ``0`` respectively.
 
 ::
 
@@ -122,7 +123,10 @@ structure. Any additional keys and values will be ignored.
       "docs": [
         {
           "allTitle": "pulp/worker",
-          "ir_description": "A short description to display in the terminal"
+          "ir_description": "A short description to display in the terminal",
+          "ir_automated": true,
+          "ir_official": true,
+          "ir_stars": 7
         }
       ]
     }

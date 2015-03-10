@@ -21,7 +21,8 @@ class TestSearch(base.BaseCraneAPITest):
     @mock.patch('crane.search.backend.search', spec_set=True)
     def test_with_results(self, mock_search):
         mock_search.return_value = [
-            SearchBackend._format_result(SearchResult('rhel', 'Red Hat Enterprise Linux')),
+            SearchBackend._format_result(SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                                      **SearchResult.result_defaults)),
         ]
 
         response = self.test_client.get('/v1/search?q=rhel')
@@ -37,9 +38,12 @@ class TestSearch(base.BaseCraneAPITest):
     @mock.patch('crane.search.backend.search', spec_set=True)
     def test_num_results(self, mock_search):
         mock_search.return_value = [
-            SearchBackend._format_result(SearchResult('rhel', 'Red Hat Enterprise Linux')),
-            SearchBackend._format_result(SearchResult('foo', 'Foo')),
-            SearchBackend._format_result(SearchResult('bar', 'Bar')),
+            SearchBackend._format_result(SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                                      **SearchResult.result_defaults)),
+            SearchBackend._format_result(SearchResult('foo', 'Foo',
+                                                      **SearchResult.result_defaults)),
+            SearchBackend._format_result(SearchResult('bar', 'Bar',
+                                                      **SearchResult.result_defaults)),
         ]
 
         response = self.test_client.get('/v1/search?q=rhel')

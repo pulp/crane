@@ -49,7 +49,8 @@ class TestSearch(BaseSolrTest):
     @mock.patch('crane.search.solr.Solr._get_data', spec_set=True)
     @mock.patch('crane.search.solr.Solr._parse')
     def test_workflow_filter_true(self, mock_parse, mock_get_data, mock_filter):
-        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux')]
+        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                                **SearchResult.result_defaults)]
 
         ret = self.solr.search('foo')
 
@@ -66,6 +67,21 @@ class TestParse(BaseSolrTest):
         self.assertTrue(isinstance(result[0], SearchResult))
         self.assertEqual(result[0].name, 'foo/bar')
         self.assertEqual(result[0].description, 'marketing speak yada yada')
+        self.assertTrue(result[0].is_official is True)
+        self.assertTrue(result[0].is_trusted is True)
+        self.assertEqual(result[0].star_count, 7)
+
+    def test_with_defaults(self):
+        result = list(self.solr._parse(json.dumps(fake_body_with_defaults)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'marketing speak yada yada')
+        self.assertTrue(result[0].is_official is SearchResult.result_defaults['is_official'])
+        self.assertTrue(result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
+        self.assertEqual(result[0].star_count, SearchResult.result_defaults['star_count'])
 
     def test_json_exception(self):
         """
@@ -87,6 +103,21 @@ class TestParse(BaseSolrTest):
 
 
 fake_body = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'ir_description': 'marketing speak yada yada',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+            }
+        ]
+    }
+}
+
+
+fake_body_with_defaults = {
     'response': {
         'docs': [
             {

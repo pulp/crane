@@ -47,6 +47,22 @@ def ping():
     response.headers['X-Docker-Registry-Standalone'] = True
     return response
 
+@section.route('/users', methods=['GET', 'POST'])
+@section.route('/users/', methods=['GET', 'POST'])
+def users():
+    """
+    Undocumented API path required for docker login when apache configured for auth
+    See get_post_users()
+    https://github.com/docker/docker-registry/blob/master/docker_registry/index.py
+    """
+    if request.method == 'GET':
+        response = current_app.make_response(json.dumps('OK'))
+        response.headers['X-Docker-Registry-Standalone'] = True
+        return response
+    response = current_app.make_response((json.dumps('User Created'), 201))
+    response.headers['Content-Type'] = 'application/json'
+    response.headers['X-Docker-Registry-Standalone'] = True
+    return response
 
 @section.route('/repositories/<path:repo_id>/images')
 def repo_images(repo_id):

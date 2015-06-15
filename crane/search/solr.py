@@ -58,13 +58,33 @@ class Solr(HTTPBackend):
         try:
             data = json.loads(body)
             for item in data['response']['docs']:
+                if item.get('documentKind') == 'CertifiedSoftware' and 'c_pull_command' not in item:
+                    continue
+                description = item.get('ir_description', item.get('abstract'))
+                name = item.get('c_pull_command', item.get('allTitle'))
+                should_filter = True if item.get('documentKind') == 'ImageRepository' else False
                 trusted = item.get('ir_automated', SearchResult.result_defaults['is_trusted'])
                 automated = item.get('ir_official', SearchResult.result_defaults['is_official'])
                 stars = item.get('ir_stars', SearchResult.result_defaults['star_count'])
-                yield SearchResult(item['allTitle'], item['ir_description'],
-                                   trusted, automated, stars)
+                yield SearchResult(name, description, trusted, automated, stars, should_filter)
         except Exception, e:
             _logger.error('could not parse response body: %s' % e)
             _logger.exception('could not parse response')
             raise exceptions.HTTPError(httplib.BAD_GATEWAY,
                                        'error communicating with backend search service')
+
+    def _filter_result(self, result):
+        """
+        Overrides _filter_result of HTTPBackend. If the result object does not represent an ISV
+        repository, authorize it otherwise skip authorization
+
+        :param result:  one search result
+        :type  result:  SearchResult
+        :return:    True if either the repository is known and the user is authorized or
+                    if authorization can be skipped else False
+        :rtype:     bool
+        """
+        if result.should_filter:
+            return super(Solr, self)._filter_result(result)
+        else:
+            return True

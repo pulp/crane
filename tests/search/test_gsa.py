@@ -42,10 +42,10 @@ class TestSearch(BaseGSATest):
     @mock.patch('crane.search.gsa.GSA._parse_xml')
     def test_workflow_filter_true(self, mock_parse_xml, mock_get_data, mock_filter):
         mock_parse_xml.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
-                                                    **SearchResult.result_defaults)]
+                                                            **SearchResult.result_defaults)]
 
         ret = self.gsa.search('foo')
-
+        # should_filter is part of default
         mock_get_data.assert_called_once_with('http://pulpproject.org/search?q=foo')
         self.assertDictEqual(list(ret)[0], {
             'name': 'rhel',
@@ -53,6 +53,7 @@ class TestSearch(BaseGSATest):
             'star_count': 0,
             'is_trusted': False,
             'is_official': False,
+            'should_filter': True,
         })
 
     @mock.patch('crane.search.gsa.GSA._filter_result', spec_set=True, return_value=False)

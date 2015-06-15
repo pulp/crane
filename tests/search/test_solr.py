@@ -32,7 +32,8 @@ class TestSearch(BaseSolrTest):
     @mock.patch('crane.search.solr.Solr._get_data', spec_set=True)
     @mock.patch('crane.search.solr.Solr._parse')
     def test_workflow_filter_true(self, mock_parse, mock_get_data, mock_filter):
-        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux')]
+        mock_parse.return_value = [
+            SearchResult('rhel', 'Red Hat Enterprise Linux')]
 
         ret = self.solr.search('foo')
 
@@ -49,13 +50,66 @@ class TestSearch(BaseSolrTest):
     @mock.patch('crane.search.solr.Solr._get_data', spec_set=True)
     @mock.patch('crane.search.solr.Solr._parse')
     def test_workflow_filter_true(self, mock_parse, mock_get_data, mock_filter):
-        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
+        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux', 
                                                 **SearchResult.result_defaults)]
 
         ret = self.solr.search('foo')
 
         mock_get_data.assert_called_once_with('http://pulpproject.org/search?q=foo')
         self.assertEqual(len(list(ret)), 0)
+
+    @mock.patch('crane.app_util.repo_is_authorized', spec_set=True, return_value=True)
+    def test_workflow_filter_true_with_image_repository_document_kind(self, mock_is_authorized):
+        """
+        When the should_filter attribute of SearchResult instance is True,
+        the base implementation of the filter_results should be called and
+        the return value should be the value returned by the mocked app_util.repo_is_authorized
+        """
+        result = SearchResult(
+            'rhel', 'Red Hat Enterprise Linux', False, False, 0, True)
+        ret_val = self.solr._filter_result(result)
+        self.assertEquals(ret_val, True)
+
+    @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
+    def test_workflow_filter_false_with_image_repository_document_kind(self, mock_is_authorized):
+        """
+        When the should_filter attribute of SearchResult instance is True,
+        the base implementation of the filter_results should be called and
+        the return value should be based on the value returned/exception raised
+        by the mocked app_util.repo_is_authorized
+        """
+        mock_is_authorized.side_effect = exceptions.HTTPError(
+            httplib.NOT_FOUND)
+        result = SearchResult(
+            'rhel', 'Red Hat Enterprise Linux', False, False, 0, True)
+        ret_val = self.solr._filter_result(result)
+        self.assertEquals(ret_val, False)
+
+    @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
+    def test_workflow_filter_false_with_should_filter_false(self, mock_is_authorized):
+        """
+        When the should_filter attribute of SearchResult instance is True,
+        the base implementation of the filter_results should be called and
+        the return value should be based on the value returned/exception raised
+        by the mocked app_util.repo_is_authorized
+        """
+        mock_is_authorized.side_effect = exceptions.HTTPError(
+            httplib.NOT_FOUND)
+        result = SearchResult(
+            'rhel', 'Red Hat Enterprise Linux', False, False, 0, False)
+        ret_val = self.solr._filter_result(result)
+        self.assertEquals(ret_val, True)
+
+    @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
+    def test_workflow_filter_true_with_image_repository_document_kind_with_defaults(self, mock_is_authorized):
+        """
+        When the should_filter attribute of SearchResult instance is default which is False,
+        the base implementation of the filter_results is not called 
+        """
+        result = SearchResult('rhel', 'Red Hat Enterprise Linux',
+                              **SearchResult.result_defaults)
+        ret_val = self.solr._filter_result(result)
+        self.assertEquals(ret_val, True)
 
 
 class TestParse(BaseSolrTest):
@@ -70,6 +124,79 @@ class TestParse(BaseSolrTest):
         self.assertTrue(result[0].is_official is True)
         self.assertTrue(result[0].is_trusted is True)
         self.assertEqual(result[0].star_count, 7)
+        self.assertEqual(result[0].should_filter, False)
+     
+    def test_normal_with_document_kind_image_repository(self):
+        result = list(
+            self.solr._parse(json.dumps(fake_body_with_document_kind_image_repsitory)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'marketing speak yada yada')
+        self.assertEqual(result[0].should_filter, True)
+        self.assertTrue(result[0].is_official is True)
+        self.assertTrue(result[0].is_trusted is True)
+        self.assertEqual(result[0].star_count, 7)
+
+    def test_normal_with_document_kind_certified_software(self):
+        result = list(
+            self.solr._parse(json.dumps(fake_body_with_document_kind_certified_software)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'marketing speak yada yada')
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(result[0].is_official is True)
+        self.assertTrue(result[0].is_trusted is True)
+        self.assertEqual(result[0].star_count, 7)
+
+    def test_normal_with_document_kind_certified_software_no_pull_command(self):
+        result = list(self.solr._parse(
+            json.dumps(fake_body_with_document_kind_certified_software_no_pull_command)))
+        self.assertEqual(len(result), 0)
+
+    def test_normal_with_abstract(self):
+        result = list(self.solr._parse(json.dumps(fake_body_with_abstract)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'test')
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(result[0].is_official is True)
+        self.assertTrue(result[0].is_trusted is True)
+        self.assertEqual(result[0].star_count, 7)
+
+    def test_normal_with_abstract_and_document_kind_image_repsitory(self):
+        result = list(self.solr._parse(
+            json.dumps(fake_body_with_abstract_and_document_kind_image_repsitory)))
+
+        self.assertEqual(len(result), 1)
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'test')
+        self.assertEqual(result[0].should_filter, True)
+        self.assertTrue(result[0].is_official is True)
+        self.assertTrue(result[0].is_trusted is True)
+        self.assertEqual(result[0].star_count, 7)
+
+    def test_normal_with_abstract_and_document_kind_certified_software(self):
+        result = list(self.solr._parse(
+            json.dumps(fake_body_with_abstract_and_document_kind_certified_software)))
+
+        self.assertEqual(len(result), 1)
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'test')
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(result[0].is_official is True)
+        self.assertTrue(result[0].is_trusted is True)
+        self.assertEqual(result[0].star_count, 7)
 
     def test_with_defaults(self):
         result = list(self.solr._parse(json.dumps(fake_body_with_defaults)))
@@ -79,9 +206,98 @@ class TestParse(BaseSolrTest):
         self.assertTrue(isinstance(result[0], SearchResult))
         self.assertEqual(result[0].name, 'foo/bar')
         self.assertEqual(result[0].description, 'marketing speak yada yada')
-        self.assertTrue(result[0].is_official is SearchResult.result_defaults['is_official'])
-        self.assertTrue(result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
-        self.assertEqual(result[0].star_count, SearchResult.result_defaults['star_count'])
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(
+            result[0].is_official is SearchResult.result_defaults['is_official'])
+        self.assertTrue(
+            result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
+        self.assertEqual(
+            result[0].star_count, SearchResult.result_defaults['star_count'])
+
+    def test_with_defaults_and_document_kind_image_repsitory(self):
+        result = list(self.solr._parse(
+            json.dumps(fake_body_with_defaults_and_document_kind_image_repsitory)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'marketing speak yada yada')
+        self.assertEqual(result[0].should_filter, True)
+        self.assertTrue(
+            result[0].is_official is SearchResult.result_defaults['is_official'])
+        self.assertTrue(
+            result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
+        self.assertEqual(
+            result[0].star_count, SearchResult.result_defaults['star_count'])
+
+    def test_with_defaults_and_document_kind_certified_software(self):
+        result = list(self.solr._parse(
+            json.dumps(fake_body_with_defaults_and_document_kind_certified_software)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'marketing speak yada yada')
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(
+            result[0].is_official is SearchResult.result_defaults['is_official'])
+        self.assertTrue(
+            result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
+        self.assertEqual(
+            result[0].star_count, SearchResult.result_defaults['star_count'])
+
+    def test_with_defaults_and_abstract(self):
+        result = list(
+            self.solr._parse(json.dumps(fake_body_with_defaults_and_abstract)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'test')
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(
+            result[0].is_official is SearchResult.result_defaults['is_official'])
+        self.assertTrue(
+            result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
+        self.assertEqual(
+            result[0].star_count, SearchResult.result_defaults['star_count'])
+
+    def test_with_defaults_and_abstract_and_document_kind_image_repsitory(self):
+        result = list(self.solr._parse(json.dumps(
+            fake_body_with_defaults_and_abstract_and_document_kind_image_repsitory)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'test')
+        self.assertEqual(result[0].should_filter, True)
+        self.assertTrue(
+            result[0].is_official is SearchResult.result_defaults['is_official'])
+        self.assertTrue(
+            result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
+        self.assertEqual(
+            result[0].star_count, SearchResult.result_defaults['star_count'])
+
+    def test_with_defaults_and_abstract_and_document_kind_certified_software(self):
+        result = list(self.solr._parse(json.dumps(
+            fake_body_with_defaults_and_abstract_and_document_kind_certified_software)))
+
+        self.assertEqual(len(result), 1)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'test')
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(
+            result[0].is_official is SearchResult.result_defaults['is_official'])
+        self.assertTrue(
+            result[0].is_trusted is SearchResult.result_defaults['is_trusted'])
+        self.assertEqual(
+            result[0].star_count, SearchResult.result_defaults['star_count'])
 
     def test_json_exception(self):
         """
@@ -116,6 +332,95 @@ fake_body = {
     }
 }
 
+fake_body_with_document_kind_image_repsitory = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'ir_description': 'marketing speak yada yada',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+                'documentKind': 'ImageRepository',
+            }
+        ]
+    }
+}
+
+fake_body_with_document_kind_certified_software = {
+    'response': {
+        'docs': [
+            {
+                'c_pull_command': 'foo/bar',
+                'ir_description': 'marketing speak yada yada',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+                'documentKind': 'CertifiedSoftware',
+            }
+        ]
+    }
+}
+
+fake_body_with_document_kind_certified_software_no_pull_command = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'ir_description': 'marketing speak yada yada',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+                'documentKind': 'CertifiedSoftware',
+            }
+        ]
+    }
+}
+
+fake_body_with_abstract = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'abstract': 'test',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+            }
+        ]
+    }
+}
+
+fake_body_with_abstract_and_document_kind_image_repsitory = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'abstract': 'test',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+                'documentKind': 'ImageRepository',
+            }
+        ]
+    }
+}
+
+fake_body_with_abstract_and_document_kind_certified_software = {
+    'response': {
+        'docs': [
+            {
+                'c_pull_command': 'foo/bar',
+                'abstract': 'test',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+                'documentKind': 'CertifiedSoftware',
+            }
+        ]
+    }
+}
+
 
 fake_body_with_defaults = {
     'response': {
@@ -123,6 +428,65 @@ fake_body_with_defaults = {
             {
                 'allTitle': 'foo/bar',
                 'ir_description': 'marketing speak yada yada',
+            }
+        ]
+    }
+}
+
+fake_body_with_defaults_and_document_kind_image_repsitory = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'ir_description': 'marketing speak yada yada',
+                'documentKind': 'ImageRepository',
+            }
+        ]
+    }
+}
+
+fake_body_with_defaults_and_document_kind_certified_software = {
+    'response': {
+        'docs': [
+            {
+                'c_pull_command': 'foo/bar',
+                'ir_description': 'marketing speak yada yada',
+                'documentKind': 'CertifiedSoftware',
+            }
+        ]
+    }
+}
+
+fake_body_with_defaults_and_abstract = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'abstract': 'test',
+            }
+        ]
+    }
+}
+
+fake_body_with_defaults_and_abstract_and_document_kind_image_repsitory = {
+    'response': {
+        'docs': [
+            {
+                'allTitle': 'foo/bar',
+                'abstract': 'test',
+                'documentKind': 'ImageRepository',
+            }
+        ]
+    }
+}
+
+fake_body_with_defaults_and_abstract_and_document_kind_certified_software = {
+    'response': {
+        'docs': [
+            {
+                'c_pull_command': 'foo/bar',
+                'abstract': 'test',
+                'documentKind': 'CertifiedSoftware',
             }
         ]
     }

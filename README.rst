@@ -220,6 +220,43 @@ images are listed on a web page. This URL accepts an optional "Content-Type" hea
     }
 
 
+User Authentication
+-------------------
+
+Basic username/passphrase authentication may be configured using standard Apache configuration.
+End-users access images by client command ``docker login <crane-registry-uri>``. End-users who
+``docker pull <image>`` before logging in will be prompted for usernamd/passphrase.
+
+Crane does not manage users. They must be managed with an ``.htpasswd`` file. The ``htpasswd``
+tool is available to manage the ``.htpasswd`` file. See `Apache documentation <http://httpd.apache.org/docs/2.4/programs/htpasswd.html>`_.
+
+Configuration may be enabled through an Apache config or ``.htaccess`` file. See `Apache documentation <http://httpd.apache.org/docs/2.0/howto/htaccess.html>`_.
+
+Example ``.htaccess`` file:
+
+.. code-block::
+
+    AuthType Basic
+    AuthName "Authentication Required"
+    AuthUserFile /path/to/.htpasswd
+    Require valid-user
+
+Example ``apache.conf`` file:
+
+.. code-block::
+
+    <VirtualHost *>
+        WSGIScriptAlias / /usr/share/crane/crane.wsgi
+        <Location /crane>
+            Require host localhost
+            AuthType Basic
+            AuthName "Docker Registry Repository"
+            AuthUserFile /path/to/.htpasswd
+            Require valid-user
+        </Location>
+    </VirtualHost>
+
+
 Attribution
 -----------
 

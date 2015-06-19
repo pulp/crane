@@ -34,11 +34,12 @@ class TestSearchBackend(unittest2.TestCase):
             'is_trusted': False,
             'is_official': False,
             'star_count': 0,
+            'should_filter': True,
         })
 
     def test_non_defaults(self):
         result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
-                                   True, True, 8)
+                                   True, True, 8, False)
 
         ret = self.backend._format_result(result)
 
@@ -48,6 +49,7 @@ class TestSearchBackend(unittest2.TestCase):
             'is_trusted': True,
             'is_official': True,
             'star_count': 8,
+            'should_filter': False,
         })
 
     @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)

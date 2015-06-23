@@ -58,15 +58,25 @@ class Solr(HTTPBackend):
         try:
             data = json.loads(body)
             for item in data['response']['docs']:
-                if item.get('documentKind') == 'CertifiedSoftware' and 'c_pull_command' not in item:
-                    continue
                 description = item.get('ir_description', item.get('abstract'))
-                name = item.get('c_pull_command', item.get('allTitle'))
-                should_filter = True if item.get('documentKind') == 'ImageRepository' else False
                 trusted = item.get('ir_automated', SearchResult.result_defaults['is_trusted'])
                 automated = item.get('ir_official', SearchResult.result_defaults['is_official'])
                 stars = item.get('ir_stars', SearchResult.result_defaults['star_count'])
-                yield SearchResult(name, description, trusted, automated, stars, should_filter)
+
+                if item.get('documentKind') == 'CertifiedSoftware' and 'c_pull_command' not in item:
+                    continue
+                elif item.get('documentKind') == 'CertifiedSoftware':
+                    for value in item.get('c_pull_command'):
+                        name = value.replace('docker pull', '', 1).strip()
+                        should_filter = False
+                        yield SearchResult(name, description, trusted, automated,
+                                           stars, should_filter)
+                else:
+                    name = item.get('allTitle')
+                    should_filter = True if item.get('documentKind') == 'ImageRepository' \
+                        else False
+                    yield SearchResult(name, description, trusted, automated,
+                                       stars, should_filter)
         except Exception, e:
             _logger.error('could not parse response body: %s' % e)
             _logger.exception('could not parse response')

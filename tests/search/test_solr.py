@@ -33,7 +33,8 @@ class TestSearch(BaseSolrTest):
     @mock.patch('crane.search.solr.Solr._parse')
     def test_workflow_filter_true(self, mock_parse, mock_get_data, mock_filter):
         mock_parse.return_value = [
-            SearchResult('rhel', 'Red Hat Enterprise Linux')]
+            SearchResult('rhel', 'Red Hat Enterprise Linux',
+                         True, True, 5, True)]
 
         ret = self.solr.search('foo')
 
@@ -44,13 +45,14 @@ class TestSearch(BaseSolrTest):
             'star_count': 5,
             'is_trusted': True,
             'is_official': True,
+            'should_filter': True
         })
 
     @mock.patch('crane.search.solr.Solr._filter_result', spec_set=True, return_value=False)
     @mock.patch('crane.search.solr.Solr._get_data', spec_set=True)
     @mock.patch('crane.search.solr.Solr._parse')
-    def test_workflow_filter_true(self, mock_parse, mock_get_data, mock_filter):
-        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux', 
+    def test_workflow_filter_true_with_defaults(self, mock_parse, mock_get_data, mock_filter):
+        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
                                                 **SearchResult.result_defaults)]
 
         ret = self.solr.search('foo')
@@ -101,10 +103,10 @@ class TestSearch(BaseSolrTest):
         self.assertEquals(ret_val, True)
 
     @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
-    def test_workflow_filter_true_with_image_repository_document_kind_with_defaults(self, mock_is_authorized):
+    def test_workflow_filter_true_with_image_repository_with_defaults(self, mock_is_authorized):
         """
         When the should_filter attribute of SearchResult instance is default which is False,
-        the base implementation of the filter_results is not called 
+        the base implementation of the filter_results is not called
         """
         result = SearchResult('rhel', 'Red Hat Enterprise Linux',
                               **SearchResult.result_defaults)
@@ -125,10 +127,10 @@ class TestParse(BaseSolrTest):
         self.assertTrue(result[0].is_trusted is True)
         self.assertEqual(result[0].star_count, 7)
         self.assertEqual(result[0].should_filter, False)
-     
+
     def test_normal_with_document_kind_image_repository(self):
         result = list(
-            self.solr._parse(json.dumps(fake_body_with_document_kind_image_repsitory)))
+            self.solr._parse(json.dumps(fake_body_with_document_kind_image_repository)))
 
         self.assertEqual(len(result), 1)
 
@@ -154,6 +156,29 @@ class TestParse(BaseSolrTest):
         self.assertTrue(result[0].is_trusted is True)
         self.assertEqual(result[0].star_count, 7)
 
+    def test_normal_with_document_kind_certified_software_multiple_pull(self):
+        result = list(
+            self.solr._parse(json.dumps(
+                fake_body_with_document_kind_certified_software_multiple_pull)))
+
+        self.assertEqual(len(result), 2)
+
+        self.assertTrue(isinstance(result[0], SearchResult))
+        self.assertEqual(result[0].name, 'foo/bar')
+        self.assertEqual(result[0].description, 'marketing speak yada yada')
+        self.assertEqual(result[0].should_filter, False)
+        self.assertTrue(result[0].is_official is True)
+        self.assertTrue(result[0].is_trusted is True)
+        self.assertEqual(result[0].star_count, 7)
+
+        self.assertTrue(isinstance(result[1], SearchResult))
+        self.assertEqual(result[1].name, 'foo/baz')
+        self.assertEqual(result[1].description, 'marketing speak yada yada')
+        self.assertEqual(result[1].should_filter, False)
+        self.assertTrue(result[1].is_official is True)
+        self.assertTrue(result[1].is_trusted is True)
+        self.assertEqual(result[1].star_count, 7)
+
     def test_normal_with_document_kind_certified_software_no_pull_command(self):
         result = list(self.solr._parse(
             json.dumps(fake_body_with_document_kind_certified_software_no_pull_command)))
@@ -172,9 +197,9 @@ class TestParse(BaseSolrTest):
         self.assertTrue(result[0].is_trusted is True)
         self.assertEqual(result[0].star_count, 7)
 
-    def test_normal_with_abstract_and_document_kind_image_repsitory(self):
+    def test_normal_with_abstract_and_document_kind_image_repository(self):
         result = list(self.solr._parse(
-            json.dumps(fake_body_with_abstract_and_document_kind_image_repsitory)))
+            json.dumps(fake_body_with_abstract_and_document_kind_image_repository)))
 
         self.assertEqual(len(result), 1)
         self.assertTrue(isinstance(result[0], SearchResult))
@@ -214,9 +239,9 @@ class TestParse(BaseSolrTest):
         self.assertEqual(
             result[0].star_count, SearchResult.result_defaults['star_count'])
 
-    def test_with_defaults_and_document_kind_image_repsitory(self):
+    def test_with_defaults_and_document_kind_image_repository(self):
         result = list(self.solr._parse(
-            json.dumps(fake_body_with_defaults_and_document_kind_image_repsitory)))
+            json.dumps(fake_body_with_defaults_and_document_kind_image_repository)))
 
         self.assertEqual(len(result), 1)
 
@@ -265,9 +290,9 @@ class TestParse(BaseSolrTest):
         self.assertEqual(
             result[0].star_count, SearchResult.result_defaults['star_count'])
 
-    def test_with_defaults_and_abstract_and_document_kind_image_repsitory(self):
+    def test_with_defaults_and_abstract_and_document_kind_image_repository(self):
         result = list(self.solr._parse(json.dumps(
-            fake_body_with_defaults_and_abstract_and_document_kind_image_repsitory)))
+            fake_body_with_defaults_and_abstract_and_document_kind_image_repository)))
 
         self.assertEqual(len(result), 1)
 
@@ -332,7 +357,7 @@ fake_body = {
     }
 }
 
-fake_body_with_document_kind_image_repsitory = {
+fake_body_with_document_kind_image_repository = {
     'response': {
         'docs': [
             {
@@ -351,7 +376,22 @@ fake_body_with_document_kind_certified_software = {
     'response': {
         'docs': [
             {
-                'c_pull_command': 'foo/bar',
+                'c_pull_command': ['foo/bar'],
+                'ir_description': 'marketing speak yada yada',
+                'ir_automated': True,
+                'ir_official': True,
+                'ir_stars': 7,
+                'documentKind': 'CertifiedSoftware',
+            }
+        ]
+    }
+}
+
+fake_body_with_document_kind_certified_software_multiple_pull = {
+    'response': {
+        'docs': [
+            {
+                'c_pull_command': ['docker pull foo/bar', 'docker pull foo/baz'],
                 'ir_description': 'marketing speak yada yada',
                 'ir_automated': True,
                 'ir_official': True,
@@ -391,7 +431,7 @@ fake_body_with_abstract = {
     }
 }
 
-fake_body_with_abstract_and_document_kind_image_repsitory = {
+fake_body_with_abstract_and_document_kind_image_repository = {
     'response': {
         'docs': [
             {
@@ -410,7 +450,7 @@ fake_body_with_abstract_and_document_kind_certified_software = {
     'response': {
         'docs': [
             {
-                'c_pull_command': 'foo/bar',
+                'c_pull_command': ['foo/bar'],
                 'abstract': 'test',
                 'ir_automated': True,
                 'ir_official': True,
@@ -433,7 +473,7 @@ fake_body_with_defaults = {
     }
 }
 
-fake_body_with_defaults_and_document_kind_image_repsitory = {
+fake_body_with_defaults_and_document_kind_image_repository = {
     'response': {
         'docs': [
             {
@@ -449,7 +489,7 @@ fake_body_with_defaults_and_document_kind_certified_software = {
     'response': {
         'docs': [
             {
-                'c_pull_command': 'foo/bar',
+                'c_pull_command': ['foo/bar'],
                 'ir_description': 'marketing speak yada yada',
                 'documentKind': 'CertifiedSoftware',
             }
@@ -468,7 +508,7 @@ fake_body_with_defaults_and_abstract = {
     }
 }
 
-fake_body_with_defaults_and_abstract_and_document_kind_image_repsitory = {
+fake_body_with_defaults_and_abstract_and_document_kind_image_repository = {
     'response': {
         'docs': [
             {
@@ -484,7 +524,7 @@ fake_body_with_defaults_and_abstract_and_document_kind_certified_software = {
     'response': {
         'docs': [
             {
-                'c_pull_command': 'foo/bar',
+                'c_pull_command': ['foo/bar'],
                 'abstract': 'test',
                 'documentKind': 'CertifiedSoftware',
             }

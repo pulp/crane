@@ -422,7 +422,7 @@ fake_body_with_abstract = {
         'docs': [
             {
                 'allTitle': 'foo/bar',
-                'abstract': 'test',
+                'publishedAbstract': 'test',
                 'ir_automated': True,
                 'ir_official': True,
                 'ir_stars': 7,
@@ -436,7 +436,7 @@ fake_body_with_abstract_and_document_kind_image_repository = {
         'docs': [
             {
                 'allTitle': 'foo/bar',
-                'abstract': 'test',
+                'publishedAbstract': 'test',
                 'ir_automated': True,
                 'ir_official': True,
                 'ir_stars': 7,
@@ -451,7 +451,7 @@ fake_body_with_abstract_and_document_kind_certified_software = {
         'docs': [
             {
                 'c_pull_command': ['foo/bar'],
-                'abstract': 'test',
+                'publishedAbstract': 'test',
                 'ir_automated': True,
                 'ir_official': True,
                 'ir_stars': 7,
@@ -502,7 +502,7 @@ fake_body_with_defaults_and_abstract = {
         'docs': [
             {
                 'allTitle': 'foo/bar',
-                'abstract': 'test',
+                'publishedAbstract': 'test',
             }
         ]
     }
@@ -513,7 +513,7 @@ fake_body_with_defaults_and_abstract_and_document_kind_image_repository = {
         'docs': [
             {
                 'allTitle': 'foo/bar',
-                'abstract': 'test',
+                'publishedAbstract': 'test',
                 'documentKind': 'ImageRepository',
             }
         ]
@@ -525,7 +525,7 @@ fake_body_with_defaults_and_abstract_and_document_kind_certified_software = {
         'docs': [
             {
                 'c_pull_command': ['foo/bar'],
-                'abstract': 'test',
+                'publishedAbstract': 'test',
                 'documentKind': 'CertifiedSoftware',
             }
         ]

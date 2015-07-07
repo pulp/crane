@@ -7,7 +7,7 @@ from crane import config
 class TestRepository(base.BaseCraneAPITest):
     def test_repositories_json(self):
         response = self.test_client.get('/crane/repositories',
-                                        headers={'Content-Type': 'application/json'})
+                                        headers={'Accept': 'application/json'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers['Content-Type'], 'application/json')
 

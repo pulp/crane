@@ -168,7 +168,7 @@ Crane Admin
 A list of images served by Crane can be obtained by opening ``/crane/repositories`` in a web
 browser or with ``curl``. The default Apache configuration distributed with Crane restricts access
 to this URL from ``localhost`` only; when accessed from a web browser, repositories and their
-images are listed on a web page. This URL accepts an optional "Content-Type" header. When
+images are listed on a web page. This URL accepts an optional "Accept" header. When
 "application/json" is specified, the application responds with JSON. Here is an example:
 
 .. code-block::

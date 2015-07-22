@@ -1,0 +1,6 @@
+{
+    "repository": "foo",
+    "repo-registry-id": "redhat/foo",
+    "url": "http://cdn.redhat.com/foo/bar",
+    "version": 2
+}

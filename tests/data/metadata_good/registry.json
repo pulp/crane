@@ -1,0 +1,3 @@
+{"repo-registry-id": "registry", "repository": "registry", "url":
+"https://oh-hey-beav-whats-up.os1.phx2.redhat.com/pulp/docker/v2/registry/",
+"version": 2, "protected": false, "type": "pulp-docker-redirect"}

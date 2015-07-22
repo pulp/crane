@@ -1,11 +1,10 @@
 from collections import namedtuple
-import glob
 import logging
 import os
 import threading
 import time
 import urlparse
-
+import fnmatch
 from flask import json
 
 from . import config
@@ -13,12 +12,17 @@ from . import config
 
 logger = logging.getLogger(__name__)
 
-response_data = {
+v1_response_data = {
     'repos': {},
     'images': {},
 }
 
-Repo = namedtuple('Repo', ['url', 'images_json', 'tags_json', 'url_path', 'protected'])
+v2_response_data = {
+    'repos': {}
+}
+
+V1Repo = namedtuple('V1Repo', ['url', 'images_json', 'tags_json', 'url_path', 'protected'])
+V2Repo = namedtuple('V2Repo', ['url', 'url_path', 'protected'])
 
 
 def load_from_file(path):
@@ -29,6 +33,8 @@ def load_from_file(path):
     :type  path:    basestring
 
     :return:    tuple of repo_id (str), repo_tuple (Repo), image_ids (list)
+                if the metadata corresponds to v1 registry. If metadata is for
+                v2 registry, image_ids will be None.
     :rtype:     tuple
 
     :raises ValueError: if the "version" value in the metadata is not a supported
@@ -38,18 +44,23 @@ def load_from_file(path):
         repo_data = json.load(json_file)
 
     # for now, we only support version 1 of the metadata schema
-    if repo_data['version'] != 1:
+    if repo_data['version'] not in (1, 2):
         raise ValueError('metadata version %d not supported' % repo_data['version'])
 
     repo_id = repo_data['repo-registry-id']
-    image_ids = [image['id'] for image in repo_data['images']]
     url_path = urlparse.urlparse(repo_data['url']).path
-    repo_tuple = Repo(repo_data['url'],
-                      json.dumps(repo_data['images']),
-                      json.dumps(repo_data['tags']),
-                      url_path, repo_data.get('protected', False))
 
-    return repo_id, repo_tuple, image_ids
+    if repo_data['version'] == 1:
+        image_ids = [image['id'] for image in repo_data['images']]
+        repo_tuple = V1Repo(repo_data['url'],
+                            json.dumps(repo_data['images']),
+                            json.dumps(repo_data['tags']),
+                            url_path, repo_data.get('protected', False))
+        return repo_id, repo_tuple, image_ids
+    elif repo_data['version'] == 2:
+        repo_tuple = V2Repo(repo_data['url'],
+                            url_path, repo_data.get('protected', False))
+        return repo_id, repo_tuple, None
 
 
 def monitor_data_dir(app, last_modified=0):
@@ -106,31 +117,41 @@ def load_all(app):
     :param app: the flask application
     :type  app: flask.Flask
     """
-    global response_data
-    repos = {}
+    global v2_response_data
+    v2_repos = {}
+
+    global v1_response_data
+    v1_repos = {}
     images = {}
 
     try:
         data_dir = app.config[config.KEY_DATA_DIR]
         logging.info('loading metadata from %s' % data_dir)
-        paths = glob.glob(os.path.join(data_dir, '*.json'))
+        # scan data dir recursively and pick json files
+        paths = [os.path.join(dirpath, f)
+                 for dirpath, dirnames, files in os.walk(data_dir)
+                 for f in fnmatch.filter(files, '*.json')]
 
         # load data from each file
         for metadata_file_path in paths:
             repo_id, repo_tuple, image_ids = load_from_file(metadata_file_path)
-            repos[repo_id] = repo_tuple
-            for image_id in image_ids:
-                images.setdefault(image_id, set()).add(repo_id)
+            if image_ids:
+                v1_repos[repo_id] = repo_tuple
+                for image_id in image_ids:
+                    images.setdefault(image_id, set()).add(repo_id)
+            else:
+                v2_repos[repo_id] = repo_tuple
 
         # make each set immutable
         for image_id in images.keys():
             images[image_id] = frozenset(images[image_id])
-
         # replace old data structure with new
-        response_data = {
-            'repos': repos,
+        v1_response_data = {
+            'repos': v1_repos,
             'images': images,
         }
-
+        v2_response_data = {
+            'repos': v2_repos
+        }
     except Exception, e:
         logger.error('aborting metadata load: %s' % str(e))

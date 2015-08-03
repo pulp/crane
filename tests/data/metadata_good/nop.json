@@ -1,0 +1,14 @@
+{
+    "images": [
+        {
+            "id": "def4561"
+        }
+    ],
+    "repository": "nop",
+    "repo-registry-id": "nop",
+    "tags": {
+        "ab": "def456"
+    },
+    "url": "http://cdn.redhat.com/nop/baz/images",
+    "version": 1
+}

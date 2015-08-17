@@ -65,7 +65,7 @@ class TestInitLogging(unittest2.TestCase):
 class TestSetLogLevel(unittest2.TestCase):
     def setUp(self):
         super(TestSetLogLevel, self).setUp()
-        with mock.patch('crane.app.init_logging') as mock_init_logging:
+        with mock.patch('crane.app.init_logging'):
             self.app = app.create_app()
 
     def test_debug(self, mock_set_level):

@@ -32,7 +32,8 @@ class TestSearch(BaseSolrTest):
     @mock.patch('crane.search.solr.Solr._get_data', spec_set=True)
     @mock.patch('crane.search.solr.Solr._parse')
     def test_workflow_filter_true(self, mock_parse, mock_get_data, mock_filter):
-        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux')]
+        mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                                **SearchResult.result_defaults)]
 
         ret = self.solr.search('foo')
 
@@ -40,15 +41,15 @@ class TestSearch(BaseSolrTest):
         self.assertDictEqual(list(ret)[0], {
             'name': 'rhel',
             'description': 'Red Hat Enterprise Linux',
-            'star_count': 5,
-            'is_trusted': True,
-            'is_official': True,
+            'star_count': 0,
+            'is_trusted': False,
+            'is_official': False,
         })
 
     @mock.patch('crane.search.solr.Solr._filter_result', spec_set=True, return_value=False)
     @mock.patch('crane.search.solr.Solr._get_data', spec_set=True)
     @mock.patch('crane.search.solr.Solr._parse')
-    def test_workflow_filter_true(self, mock_parse, mock_get_data, mock_filter):
+    def test_workflow_filter_true_1(self, mock_parse, mock_get_data, mock_filter):
         mock_parse.return_value = [SearchResult('rhel', 'Red Hat Enterprise Linux',
                                                 **SearchResult.result_defaults)]
 

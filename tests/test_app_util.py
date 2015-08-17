@@ -116,9 +116,8 @@ class TestAuthorizeImageId(FlaskContextBase):
         mock_get_cert.return_value = cert
 
         with self.assertRaises(exceptions.HTTPError) as assertion:
-            result = mock_image_func('qux123')
+            mock_image_func('qux123')
         self.assertEquals(assertion.exception.status_code, httplib.NOT_FOUND)
-
 
 
 class TestHandler(unittest.TestCase):

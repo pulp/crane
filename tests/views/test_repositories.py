@@ -57,7 +57,6 @@ class TestRepository(base.BaseCraneAPITest):
             for image_id in repo_info['image_ids']:
                 self.assertTrue(response.data.find(image_id))
 
-
     def test_images(self):
         response = self.test_client.get('/v1/repositories/redhat/foo/images')
 

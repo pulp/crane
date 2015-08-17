@@ -34,7 +34,6 @@ class TestSearch(base.BaseCraneAPITest):
             'results': mock_search.return_value
         })
 
-
     @mock.patch('crane.search.backend.search', spec_set=True)
     def test_num_results(self, mock_search):
         mock_search.return_value = [

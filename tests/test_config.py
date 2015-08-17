@@ -40,14 +40,16 @@ class TestLoad(unittest.TestCase):
     def test_solr_url(self):
         config.load(self.app)
 
-        self.assertEqual(self.app.config.get(config.SECTION_SOLR, {}).get(config.KEY_URL), 'http://foo/bar')
+        self.assertEqual(self.app.config.get(config.SECTION_SOLR, {}).get(config.KEY_URL),
+                         'http://foo/bar')
 
     @mock.patch('os.environ.get', new={config.CONFIG_ENV_NAME: gsa_config_path}.get,
                 spec_set=True)
     def test_gsa_url(self):
         config.load(self.app)
 
-        self.assertEqual(self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL), 'http://foo/bar')
+        self.assertEqual(self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL),
+                         'http://foo/bar')
 
     @mock.patch('pkg_resources.resource_stream', side_effect=IOError, spec_set=True)
     def test_defaults_not_found(self, mock_resource_stream):

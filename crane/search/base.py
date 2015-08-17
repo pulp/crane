@@ -100,7 +100,8 @@ class HTTPBackend(SearchBackend):
             _logger.error('error communicating with backend search service: %s' % e.reason)
             raise exceptions.HTTPError(httplib.SERVICE_UNAVAILABLE)
         if response.getcode() != httplib.OK:
-            _logger.error('received http response code %s from backend search service' % response.getcode())
+            _logger.error('received http response code %s from backend search service' %
+                          response.getcode())
             raise exceptions.HTTPError(httplib.BAD_GATEWAY, url)
 
         return response.read()
@@ -110,4 +111,5 @@ class HTTPBackend(SearchBackend):
 # and well-defined way.
 class SearchResult(namedtuple('SearchResult', ['name', 'description', 'is_trusted',
                                                'is_official', 'star_count', 'should_filter'])):
-    result_defaults = {'is_trusted': False, 'is_official': False, 'star_count': 0, 'should_filter': True}
+    result_defaults = {'is_trusted': False, 'is_official': False, 'star_count': 0,
+                       'should_filter': True}

@@ -91,7 +91,7 @@ def read_config(app, parser):
                 app.config[key] = int(parser.get(SECTION_GENERAL, key))
 
     app.config['DEBUG'] = app.config.get('DEBUG') or \
-                          os.environ.get(DEBUG_ENV_NAME, '').lower() == 'true'
+        os.environ.get(DEBUG_ENV_NAME, '').lower() == 'true'
 
     # "gsa" (Google Search Appliance) section settings
     with supress(NoSectionError):

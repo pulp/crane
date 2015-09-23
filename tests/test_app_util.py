@@ -6,10 +6,10 @@ import unittest2 as unittest
 
 from crane import app_util
 from crane import exceptions
-from crane.data import Repo
+from crane.data import V1Repo
 import demo_data
 
-from .views import base
+from views import base
 
 
 @app_util.authorize_repo_id
@@ -19,6 +19,11 @@ def mock_repo_func(repo_id):
 
 @app_util.authorize_image_id
 def mock_image_func(image_id, repo_info):
+    return 'foo'
+
+
+@app_util.authorize_name
+def mock_name_func(repo_id):
     return 'foo'
 
 
@@ -74,6 +79,71 @@ class TestAuthorizeRepoId(FlaskContextBase):
         mock_get_cert.return_value = cert
         with self.assertRaises(exceptions.HTTPError) as assertion:
             mock_repo_func('qux')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
+
+
+class TestAuthorizeName(FlaskContextBase):
+
+    def test_raises_not_found_if_repo_id_none(self):
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_name_func(None)
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
+
+    def test_raises_not_found_if_repo_id_invalid(self):
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_name_func('bad_id')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_raises_not_found_if_id_invalid(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_name_func('qux')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_passes_if_auth_valid(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
+
+        result = mock_name_func('v2/bar')
+        self.assertEquals(result, 'foo')
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_if_protected(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        cert.check_path = mock.Mock(return_value=True)
+        mock_get_cert.return_value = cert
+        result = mock_name_func('protected')
+        self.assertEquals(result, 'foo')
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_if_protected_but_invalid(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_name_func('protected')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
+
+    def test_if_protected_but_no_cert(self):
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_name_func('protected')
+        self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_bypass_if_not_protected(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
+        result = mock_name_func('v2/bar')
+        self.assertEquals(result, 'foo')
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_auth_fails_if_no_path_matches_credentials(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            mock_name_func('bar1')
         self.assertEqual(assertion.exception.status_code, httplib.NOT_FOUND)
 
 
@@ -174,15 +244,28 @@ class TestValidateAndTransformRepoID(unittest.TestCase):
         self.assertEqual(ret, 'foo/bar')
 
 
+class TestValidateAndTransformRepoName(unittest.TestCase):
+
+    def test_normal(self):
+        name, path = app_util.validate_and_transform_repo_name('redhat/rhel7.0/tags/latest')
+        self.assertEqual(name, 'redhat/rhel7.0')
+        self.assertEqual(path, 'tags/latest')
+
+    def test_path_without_tags_or_manifest_or_blobs(self):
+        with self.assertRaises(exceptions.HTTPError) as assertion:
+            app_util.validate_and_transform_repo_name('redhat/rhel7.0/unknown/latest')
+        self.assertEquals(assertion.exception.status_code, httplib.NOT_FOUND)
+
+
 class TestValidateGetRepositories(unittest.TestCase):
 
     @mock.patch('crane.app_util.get_data')
     def test_get_repositories(self, mock_get_data):
-        repo = Repo(url="",
-                    images_json="[{\"id\": \"test-image1\"}, {\"id\": \"test-image2\"}]",
-                    tags_json="{\"tag1\": \"test-image1\"}",
-                    url_path="",
-                    protected=False)
+        repo = V1Repo(url="",
+                      images_json="[{\"id\": \"test-image1\"}, {\"id\": \"test-image2\"}]",
+                      tags_json="{\"tag1\": \"test-image1\"}",
+                      url_path="",
+                      protected=False)
         mock_get_data.return_value = {'repos': {"test-repo": repo}}
         ret = app_util.get_repositories()
         self.assertEqual(ret['test-repo']['image_ids'], ['test-image1', 'test-image2'])

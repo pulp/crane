@@ -1,0 +1,6 @@
+{    
+    "repository": "v2bar",
+    "repo-registry-id": "v2/bar",
+    "url": "http://cdn.redhat.com/bar/baz/images/",
+    "version": 2
+}

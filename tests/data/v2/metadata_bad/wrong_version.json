@@ -8,7 +8,10 @@
         }
     ],
     "repository": "foo",
-    "repo-registry-id": "redhat/foo",    
+    "repo-registry-id": "redhat/foo",
+    "tags": {
+        "latest": "abc123"
+    },
     "url": "http://cdn.redhat.com/foo/bar/images/",
     "version": -1
 }

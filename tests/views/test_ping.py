@@ -22,3 +22,13 @@ class TestPing(unittest.TestCase):
 
         # the real docker-registry has only "True" as the body
         self.assertEqual(json.loads(response.data), True)
+
+    def test_response_for_v2(self):
+        response = self.app.get('/v2/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+        self.assertEqual(response.headers['Docker-Distribution-API-Version'], 'registry/2.0')
+
+        # the real docker-registry has only "{}" (empty json body) as the body
+        self.assertEqual(json.loads(response.data), {})

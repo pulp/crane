@@ -1,0 +1,7 @@
+{    
+    "repository": "protected",
+    "repo-registry-id": "protected",    
+    "url": "http://cdn.redhat.com/bar/baz/images",
+    "version": 2,
+    "protected": true
+}

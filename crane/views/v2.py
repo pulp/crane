@@ -44,26 +44,18 @@ def v2():
     return response
 
 
-@section.route('/<path:name>/<path:file_path>')
-def name_redirect(name, file_path):
+@section.route('/<path:relative_path>')
+def name_redirect(relative_path):
     """
     Redirects the client to the path from where the file can be accessed.
 
-    :param name:    name of the repository. The combination of username and repo specifies
-                    a repo id
-    :type  name:    basestring
-
-    :param file_path: the relative path
-    :type file_path:  basestring
+    :param relative_path: the relative path after /v2/.
+    :type relative_path:  basestring
 
     :return:    302 redirect response
     :rtype:     flask.Response
     """
-
-    # name, repo_name, path = app_util.validate_and_transform_repo_name(username, repo, file_path)
-    full_path = '/'.join([name, file_path])
-
-    name_component, path_component = app_util.validate_and_transform_repo_name(full_path)
+    name_component, path_component = app_util.validate_and_transform_repo_name(relative_path)
     base_url = repository.get_path_for_repo(name_component)
     if not base_url.endswith('/'):
         base_url += '/'

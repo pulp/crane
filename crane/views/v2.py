@@ -1,7 +1,8 @@
 from __future__ import absolute_import
+import httplib
 from flask import Blueprint, json, current_app, redirect
 
-from crane import app_util
+from crane import app_util, exceptions
 from crane.api import repository
 
 
@@ -69,3 +70,23 @@ def name_redirect(name, file_path):
         base_url += '/'
     url = base_url + path_component
     return redirect(url)
+
+
+@section.errorhandler(exceptions.HTTPError)
+def handle_error(error):
+    """
+    Creates a v2 compatible error response.
+
+    :param error:   exception raised to indicate that an HTTP error response
+                    should be generated and returned.
+    :type  error:   crane.exceptions.HTTPError
+
+    :return:    error details in json within response body.
+    :rtype:     flask.response
+    """
+    data = {"errors": [dict(code=str(error.status_code),
+                            message=error.message or httplib.responses[error.status_code])]}
+    response = current_app.make_response(json.dumps(data))
+    response.headers['Content-Type'] = 'application/json'
+    response.status_code = error.status_code
+    return response

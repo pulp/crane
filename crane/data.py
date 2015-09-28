@@ -77,12 +77,12 @@ def monitor_data_dir(app, last_modified=0):
     data_dir = app.config[config.KEY_DATA_DIR]
     polling_interval = app.config[config.KEY_DATA_POLLING_INTERVAL]
     if not os.path.exists(data_dir):
-        logging.error('The data directory specified does not exist: %s' % data_dir)
+        logger.error('The data directory specified does not exist: %s' % data_dir)
     while True:
         # Check if the modified time has changed on the directory and if so reload the data
         # This has been verified using a directory mounted via NFS 4 as well as locally
         try:
-            logging.debug('Checking for new metadata files')
+            logger.debug('Checking for new metadata files')
             current_modified = os.stat(data_dir).st_mtime
             if current_modified > last_modified:
                 last_modified = current_modified
@@ -126,7 +126,7 @@ def load_all(app):
 
     try:
         data_dir = app.config[config.KEY_DATA_DIR]
-        logging.info('loading metadata from %s' % data_dir)
+        logger.info('loading metadata from %s' % data_dir)
         # scan data dir recursively and pick json files
         paths = [os.path.join(dirpath, f)
                  for dirpath, dirnames, files in os.walk(data_dir)

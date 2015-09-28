@@ -135,7 +135,7 @@ def load_all(app):
         # load data from each file
         for metadata_file_path in paths:
             repo_id, repo_tuple, image_ids = load_from_file(metadata_file_path)
-            if image_ids:
+            if isinstance(repo_tuple, V1Repo):
                 v1_repos[repo_id] = repo_tuple
                 for image_id in image_ids:
                     images.setdefault(image_id, set()).add(repo_id)

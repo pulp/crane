@@ -2,6 +2,7 @@
     "repository": "protected",
     "repo-registry-id": "protected",    
     "url": "http://cdn.redhat.com/bar/baz/images",
+    "tags": {"tag1":"hash1", "tag2":"hash2"},
     "version": 2,
     "protected": true
 }

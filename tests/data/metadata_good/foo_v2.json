@@ -1,6 +1,7 @@
 {
     "repository": "foo",
     "repo-registry-id": "redhat/foo",
+    "tags": {"tag1":"hash1", "tag2":"hash2"},
     "url": "http://cdn.redhat.com/foo/bar",
     "version": 2
 }

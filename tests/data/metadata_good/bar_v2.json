@@ -1,6 +1,7 @@
 {    
     "repository": "v2bar",
     "repo-registry-id": "v2/bar",
+    "tags": {"tag1":"hash1", "tag2":"hash2"},
     "url": "http://cdn.redhat.com/bar/baz/images/",
     "version": 2
 }

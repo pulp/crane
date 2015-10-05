@@ -1,5 +1,8 @@
 from __future__ import absolute_import
+from functools import partial
 import httplib
+import urllib2
+
 from flask import Blueprint, json, current_app, redirect
 
 from crane import app_util, exceptions
@@ -7,6 +10,94 @@ from crane.api import repository
 
 
 section = Blueprint('v2', __name__, url_prefix='/v2')
+
+
+def url_construct(name_component, path_component):
+    """
+    Returns the url for redirection based on name of the repo and
+    appending it with path provided by path_component
+
+    :param name_component: name of the repository
+    :type name_component: basestring
+
+    :param path_component: the relative path
+    :type path_component: basestring
+
+    :return: the complete url for redirection
+    :rtype: basestring
+    """
+    base_url = repository.get_path_for_repo(name_component)
+    if not base_url.endswith('/'):
+        base_url += '/'
+    url = base_url + path_component
+    return url
+
+
+def process_redirect(name, path):
+    """
+    Redirects the client to the path from where the file can be accessed.
+
+    :param name:    name of the repository. The combination of username and repo specifies
+                    a repo id
+    :type  name:    basestring
+
+    :param path: the relative path
+    :type path:  basestring
+
+    :return:    302 redirect response
+    :rtype:     flask.Response
+    """
+    url = url_construct(name, path)
+    return redirect(url)
+
+
+def process_response(name, path, post_process=None):
+    """
+    Process a response based on whether response is a simple
+    redirect or 200 OK with tags as body
+    :param name:    name of the repository. The combination of username and
+                    repo specifies a repo id
+    :type  name:    basestring
+
+    :param path: the relative path
+    :type path:  basestring
+
+    :param post_process: function to be called for post processing
+    :type post_process: function
+
+    :return: response
+    :rtype: flask.response
+    """
+    url = url_construct(name, path)
+    response = urllib2.urlopen(url, timeout=1).read()
+    if post_process:
+        response = post_process(response, extra={"name": name,
+                                                 "file_path": path})
+    return current_app.make_response(response)
+
+
+def tag_list(response, extra=None):
+    """
+    Return JSON document containing list of tags
+    :param response: response to be processed
+    :type response: httplib.response
+
+    :param extra: dictionary containing values for name
+                  and relative path
+    :type extra:  dict
+
+    :return: JSON document having the list of tags
+    :rtype: basestring
+    """
+    tags = json.loads(response)
+    tags_wrap = {"name": extra["name"], "tags": tags}
+    return json.dumps(tags_wrap)
+
+
+READONLY_API = {"manifests/": process_redirect,
+                "blobs/": process_redirect,
+                "tags/list": partial(process_response,
+                                     post_process=tag_list)}
 
 
 @section.after_request
@@ -60,16 +151,15 @@ def name_redirect(name, file_path):
     :return:    302 redirect response
     :rtype:     flask.Response
     """
-
-    # name, repo_name, path = app_util.validate_and_transform_repo_name(username, repo, file_path)
     full_path = '/'.join([name, file_path])
-
     name_component, path_component = app_util.validate_and_transform_repo_name(full_path)
-    base_url = repository.get_path_for_repo(name_component)
-    if not base_url.endswith('/'):
-        base_url += '/'
-    url = base_url + path_component
-    return redirect(url)
+
+    if not any([value in path_component for value in READONLY_API.keys()]):
+        raise exceptions.HTTPError(httplib.NOT_FOUND)
+
+    for path_tmpl in READONLY_API:
+        if path_component.startswith(path_tmpl):
+            return READONLY_API[path_tmpl](name_component, path_component)
 
 
 @section.errorhandler(exceptions.HTTPError)

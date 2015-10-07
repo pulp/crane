@@ -22,7 +22,7 @@ v2_response_data = {
 }
 
 V1Repo = namedtuple('V1Repo', ['url', 'images_json', 'tags_json', 'url_path', 'protected'])
-V2Repo = namedtuple('V2Repo', ['url', 'url_path', 'protected'])
+V2Repo = namedtuple('V2Repo', ['url', 'url_path', 'protected', "tags_json"])
 
 
 def load_from_file(path):
@@ -59,7 +59,8 @@ def load_from_file(path):
         return repo_id, repo_tuple, image_ids
     elif repo_data['version'] == 2:
         repo_tuple = V2Repo(repo_data['url'],
-                            url_path, repo_data.get('protected', False))
+                            url_path, repo_data.get('protected', False),
+                            repo_data["tags"])
         return repo_id, repo_tuple, None
 
 

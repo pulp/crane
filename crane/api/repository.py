@@ -30,6 +30,20 @@ def get_tags_for_repo(repo_id):
 
 
 @authorize_name
+def get_v2_tags_for_repo(repo_id):
+    """
+    Return the tag details for a repository
+
+    :param repo_id: The identifier for the repository
+    :type repo_id: basestring
+    :returns: json structure of repo tags
+    :rtype: dict
+    """
+    # Validation that the repo exists is taken care of by the decorator
+    return get_v2_data()['repos'][repo_id].tags_json
+
+
+@authorize_name
 def get_path_for_repo(repo_id):
     """
     Return the URL for the repository.

@@ -85,6 +85,8 @@ class TestLoadAll(unittest.TestCase):
         # make sure the Repo namedtuple is in the right place
         self.assertTrue(isinstance(data.v2_response_data['repos'].get('bar'), data.V2Repo))
         # spot-check a value
+        self.assertEqual(data.v2_response_data['repos'].get('bar').tags_json,
+                         {'tag1': 'hash1', 'tag2': 'hash2'})
         self.assertEqual(data.v2_response_data['repos'].get('bar').url,
                          'http://cdn.redhat.com/bar/baz/images')
 

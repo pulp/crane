@@ -6,7 +6,7 @@
 FROM centos:centos7
 MAINTAINER Pulp Team <pulp-list@redhat.com>
 
-RUN yum -y install http://dl.fedoraproject.org/pub/epel/beta/7/x86_64/epel-release-7-1.noarch.rpm
+RUN yum -y install epel-release
 
 RUN yum update -y
 
@@ -27,7 +27,7 @@ ADD LICENSE /usr/share/doc/python-crane/
 ADD COPYRIGHT /usr/share/doc/python-crane/
 ADD README.rst /usr/share/doc/python-crane/
 
-RUN pip-python install /usr/local/src/crane/
+RUN pip install /usr/local/src/crane/
 
 ENV APACHE_RUN_USER apache
 ENV APACHE_RUN_GROUP apache

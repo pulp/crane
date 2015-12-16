@@ -1,4 +1,4 @@
-# This runs crane (http://github.com/pulp/crane) on centos6
+# This runs crane (http://github.com/pulp/crane) on centos7
 #
 # Example usage:
 # $ sudo docker run -p 5000:80 -v /home/you/cranedata:/var/lib/crane/metadata pulp/crane

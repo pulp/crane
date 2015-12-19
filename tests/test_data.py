@@ -118,6 +118,10 @@ class TestLoadAll(unittest.TestCase):
         self.assertEqual(mock_error.call_count, 1)
 
 
+class StopTest(Exception):
+    pass
+
+
 class TestMonitorDataDir(unittest.TestCase):
 
     def setUp(self):
@@ -126,7 +130,20 @@ class TestMonitorDataDir(unittest.TestCase):
                                      config.KEY_DATA_POLLING_INTERVAL: 60})
         self.test_file = os.path.join(self.working_dir, 'test.file')
         open(self.test_file, 'w').close()
-        self.helper_method_called = False
+        self.test_dir = os.path.join(self.working_dir, 'testdir')
+        self.test_file_in_dir = os.path.join(self.test_dir, 'test.file')
+        os.mkdir(self.test_dir)
+        open(self.test_file_in_dir, 'w').close()
+
+        # Set the timestamps to be in the past
+        for path in [self.test_file_in_dir,
+                     self.test_dir,
+                     self.test_file,
+                     self.working_dir]:
+            st = os.stat(path)
+            os.utime(path, (st.st_atime, st.st_mtime - 1))
+
+        self.helper_method_call_count = 0
 
     def tearDown(self):
         shutil.rmtree(self.working_dir, ignore_errors=True)
@@ -134,55 +151,125 @@ class TestMonitorDataDir(unittest.TestCase):
     @mock.patch('crane.data.load_all')
     @mock.patch('crane.data.time')
     def test_monitor_initial_load(self, mock_time, mock_load_all):
-        mock_time.sleep.side_effect = Exception()
-        self.assertRaises(Exception, data.monitor_data_dir, self.app)
+        mock_time.sleep.side_effect = StopTest()
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
         self.assertTrue(mock_load_all.called)
 
-    def _add_file(self, *args, **kwargs):
-        test_file_add = os.path.join(self.working_dir, 'test1.file')
-        if not self.helper_method_called:
-            self.helper_method_called = True
-            open(test_file_add, 'w').close()
-            return mock.DEFAULT
-        raise Exception()
+    def _add_file_with_path(self, path):
+        if self.helper_method_call_count < 2:
+            self.helper_method_call_count += 1
+            # First sleep: no action
+            # Second sleep: add file
+            if self.helper_method_call_count == 2:
+                open(path, 'w').close()
 
-    @mock.patch('crane.data.os.stat')
+            return mock.DEFAULT
+
+        # Third sleep: stop test
+        raise StopTest()
+
+    def _add_file(self, *args, **kwargs):
+        return self._add_file_with_path(os.path.join(self.working_dir,
+                                                     'test1.file'))
+
     @mock.patch('crane.data.load_all')
     @mock.patch('crane.data.time')
-    def test_monitor_addition(self, mock_time, mock_load_all, mock_stat):
+    def test_monitor_addition(self, mock_time, mock_load_all):
         mock_time.sleep.return_value = 0
         mock_time.sleep.side_effect = self._add_file
-        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
-                                 mock.Mock(st_mtime=5)]
-        self.assertRaises(Exception, data.monitor_data_dir, self.app)
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
         self.assertEquals(mock_load_all.call_count, 2)
 
-    def _remove_file(self, *args, **kwargs):
-        if not self.helper_method_called:
-            self.helper_method_called = True
-            os.unlink(self.test_file)
-            return mock.DEFAULT
-        raise Exception()
+    def _add_file_in_dir(self, *args, **kwargs):
+        return self._add_file_with_path(os.path.join(self.test_dir,
+                                                     'test2.file'))
 
-    @mock.patch('crane.data.os.stat')
     @mock.patch('crane.data.load_all')
     @mock.patch('crane.data.time')
-    def test_monitor_remove(self, mock_time, mock_load_all, mock_stat):
+    def test_monitor_addition_in_dir(self, mock_time, mock_load_all):
         mock_time.sleep.return_value = 0
-        mock_time.sleep.side_effect = self._remove_file
-        mock_stat.side_effect = [mock.Mock(st_mtime=1), mock.Mock(st_mtime=1),
-                                 mock.Mock(st_mtime=5)]
-        self.assertRaises(Exception, data.monitor_data_dir, self.app)
+        mock_time.sleep.side_effect = self._add_file_in_dir
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
         self.assertEquals(mock_load_all.call_count, 2)
 
-    @mock.patch('crane.data.time.sleep')
-    def test_data_dir_does_not_exist(self, mock_sleep):
-        class MyException(Exception):
-            pass
-        mock_sleep.side_effect = MyException()
-        self.app.config[config.KEY_DATA_DIR] = '/a/b/c/idontexist'
+    def _remove_file_with_path(self, path):
+        if self.helper_method_call_count < 2:
+            self.helper_method_call_count += 1
+            # First sleep: no action
+            # Second sleep: remove file
+            if self.helper_method_call_count == 2:
+                os.unlink(path)
 
-        self.assertRaises(MyException, data.monitor_data_dir, self.app)
+            return mock.DEFAULT
+
+        # Third sleep: stop test
+        raise StopTest()
+
+    def _remove_file(self, *args, **kwargs):
+        return self._remove_file_with_path(self.test_file)
+
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time')
+    def test_monitor_remove(self, mock_time, mock_load_all):
+        mock_time.sleep.return_value = 0
+        mock_time.sleep.side_effect = self._remove_file
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
+        self.assertEquals(mock_load_all.call_count, 2)
+
+    def _remove_file_in_dir(self, *args, **kwargs):
+        return self._remove_file_with_path(self.test_file_in_dir)
+
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time')
+    def test_monitor_remove_in_dir(self, mock_time, mock_load_all):
+        mock_time.sleep.return_value = 0
+        mock_time.sleep.side_effect = self._remove_file_in_dir
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
+        self.assertEquals(mock_load_all.call_count, 2)
+
+    def _remove_dir(self, *args, **kwargs):
+        if self.helper_method_call_count < 2:
+            self.helper_method_call_count += 1
+            # First sleep: no action
+            # Second sleep: remove file
+            if self.helper_method_call_count == 2:
+                shutil.rmtree(self.test_dir)
+
+            return mock.DEFAULT
+
+        # Third sleep: stop test
+        raise StopTest()
+
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time')
+    def test_monitor_remove_dir(self, mock_time, mock_load_all):
+        mock_time.sleep.return_value = 0
+        mock_time.sleep.side_effect = self._remove_dir
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
+        self.assertEquals(mock_load_all.call_count, 2)
+
+    def _create_data_dir(self, *args, **kwargs):
+        if self.helper_method_call_count < 2:
+            self.helper_method_call_count += 1
+            # First sleep: no action
+            # Second sleep: remove file
+            if self.helper_method_call_count == 2:
+                os.mkdir(os.path.join(self.working_dir, 'idontexist'))
+
+            return mock.DEFAULT
+
+        # Third sleep: stop test
+        raise StopTest()
+
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time.sleep')
+    def test_data_dir_does_not_exist(self, mock_sleep, mock_load_all):
+        mock_sleep.side_effect = self._create_data_dir
+        self.app.config[config.KEY_DATA_DIR] = os.path.join(self.working_dir,
+                                                            'idontexist')
+
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
+        self.assertTrue(mock_load_all.call_count > 0)
 
 
 class StartMonitoringDataDirTests(unittest.TestCase):

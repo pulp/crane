@@ -79,18 +79,32 @@ def monitor_data_dir(app, last_modified=0):
     if not os.path.exists(data_dir):
         logger.error('The data directory specified does not exist: %s' % data_dir)
     while True:
-        # Check if the modified time has changed on the directory and if so reload the data
-        # This has been verified using a directory mounted via NFS 4 as well as locally
-        try:
-            logger.debug('Checking for new metadata files')
-            current_modified = os.stat(data_dir).st_mtime
-            if current_modified > last_modified:
-                last_modified = current_modified
-                load_all(app)
-        except OSError:
-            # The directory does not exist
-            pass
-        time.sleep(polling_interval)
+        # Find all the subdirectories
+        dirs = [dirpath for (dirpath, _, _) in os.walk(data_dir)]
+
+        # Load everything
+        load_all(app)
+
+        # Wait for something to change
+        while True:
+            time.sleep(polling_interval)
+            if not dirs:
+                # The data directory didn't exist before so re-check
+                break
+
+            # Check if the modified time on any directory is newer
+            # than the most recent change we saw
+            try:
+                logger.debug('Checking for new metadata files')
+                most_recent = max(os.stat(dir).st_mtime for dir in dirs)
+                if last_modified == 0:
+                    last_modified = most_recent
+                elif most_recent > last_modified:
+                    last_modified = most_recent
+                    break
+            except OSError:
+                # One of the directories no longer exists
+                break
 
 
 def start_monitoring_data_dir(app):

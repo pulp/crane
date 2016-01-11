@@ -80,6 +80,24 @@ fi
 
 
 %changelog
+* Mon Jan 11 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.1.beta
+- Bumping version to 2.0.0-0.1.beta (dkliban@redhat.com)
+- Fix Docker image creation (elyezermr@gmail.com)
+- Update Dockerfile (elyezermr@gmail.com)
+- Merge branch '1.1-dev' (dkliban@redhat.com)
+- Add fc23 to dist_list.txt config and removes fc21. (dkliban@redhat.com)
+- Patch M2Crypto in Travis to remove SSLv2. (rbarlow@redhat.com)
+- Set the version requirement on mock to be less than 1.1. (rbarlow@redhat.com)
+- Merge branch 'path_not_name' (rbarlow@redhat.com)
+- Error response for V2 registry (randalap@redhat.com)
+- Merge branch '1271' (rbarlow@redhat.com)
+- Merge branch 'logger_not_logging' (rbarlow@redhat.com)
+- Fix a logging API error. (rbarlow@redhat.com)
+- Correct the parameters to a function. (rbarlow@redhat.com)
+- Use the data file's version to determine where to put repo data.
+  (rbarlow@redhat.com)
+- CP-254: Support in Crane for v2 registry support (randalap@redhat.com)
+
 * Fri Nov 21 2014 Chris Duryee <cduryee@redhat.com> 0.2.2-1
 - Bump release to 1 (cduryee@redhat.com)
 

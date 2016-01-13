@@ -80,6 +80,9 @@ fi
 
 
 %changelog
+* Wed Jan 13 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.2.beta
+- Bumping version to 2.0.0-0.2.beta (dkliban@redhat.com)
+
 * Mon Jan 11 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.1.beta
 - Bumping version to 2.0.0-0.1.beta (dkliban@redhat.com)
 - Fix Docker image creation (elyezermr@gmail.com)

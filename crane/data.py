@@ -80,7 +80,8 @@ def monitor_data_dir(app, last_modified=0):
         logger.error('The data directory specified does not exist: %s' % data_dir)
     while True:
         # Find all the subdirectories
-        dirs = [dirpath for (dirpath, _, _) in os.walk(data_dir)]
+        dirs = [dirpath for (dirpath, _, _) in os.walk(data_dir,
+                                                       followlinks=True)]
 
         # Load everything
         load_all(app)

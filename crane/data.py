@@ -83,6 +83,16 @@ def monitor_data_dir(app, last_modified=0):
         dirs = [dirpath for (dirpath, _, _) in os.walk(data_dir,
                                                        followlinks=True)]
 
+        # Find the most recent mtime
+        if dirs and not last_modified:
+            try:
+                last_modified = max(os.stat(dir).st_mtime for dir in dirs)
+            except OSError:
+                # One of the directories no longer exists since the
+                # os.walk() call above. Load everything, sleep, and
+                # try again.
+                pass
+
         # Load everything
         load_all(app)
 
@@ -98,9 +108,7 @@ def monitor_data_dir(app, last_modified=0):
             try:
                 logger.debug('Checking for new metadata files')
                 most_recent = max(os.stat(dir).st_mtime for dir in dirs)
-                if last_modified == 0:
-                    last_modified = most_recent
-                elif most_recent > last_modified:
+                if most_recent > last_modified:
                     last_modified = most_recent
                     break
             except OSError:

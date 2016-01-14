@@ -271,6 +271,26 @@ class TestMonitorDataDir(unittest.TestCase):
         self.assertRaises(StopTest, data.monitor_data_dir, self.app)
         self.assertTrue(mock_load_all.call_count > 0)
 
+    def _raise_oserror(self, *args, **kwargs):
+        raise OSError
+
+    def _only_sleep_once(self, *args, **kwargs):
+        if self.helper_method_call_count:
+            raise StopTest()
+
+        self.helper_method_call_count += 1
+        return mock.DEFAULT
+
+    @mock.patch('crane.data.load_all')
+    @mock.patch('crane.data.time.sleep')
+    @mock.patch('os.stat')
+    def test_monitor_dir_removed_on_init(self, mock_stat, mock_sleep,
+                                         mock_load_all):
+        mock_sleep.side_effect = self._only_sleep_once
+        mock_stat.side_effect = self._raise_oserror
+        self.assertRaises(StopTest, data.monitor_data_dir, self.app)
+        self.assertEquals(mock_load_all.call_count, 2)
+
 
 class StartMonitoringDataDirTests(unittest.TestCase):
 

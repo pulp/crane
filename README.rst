@@ -42,7 +42,8 @@ debug
   file.
 
 data_dir
-  full path to the directory from which metadata files should be loaded. defaults
+  full path to the directory from which metadata files should be loaded. The app files may
+  optionally be in the root ``data_dir``, or in subdirectories as desired. defaults
   to ``/var/lib/crane/metadata/``
 
 data_dir_polling_interval
@@ -225,7 +226,7 @@ User Authentication
 
 Basic username/passphrase authentication may be configured using standard Apache configuration.
 End-users access images by client command ``docker login <crane-registry-uri>``. End-users who
-``docker pull <image>`` before logging in will be prompted for usernamd/passphrase.
+``docker pull <image>`` before logging in will be prompted for username/passphrase.
 
 Crane does not manage users. They must be managed with an ``.htpasswd`` file. The ``htpasswd``
 tool is available to manage the ``.htpasswd`` file. See `Apache documentation <http://httpd.apache.org/docs/2.4/programs/htpasswd.html>`_.
@@ -256,6 +257,18 @@ Example ``apache.conf`` file:
         </Location>
     </VirtualHost>
 
+
+Release Notes
+-------------
+
+2.0.0
+~~~~~
+
+The 2.0.0 release of Crane adds support for the Docker v2 API, and is capable of working with
+pulp_docker's new v2 app file format in addition to the v1 format that it did before. In order to
+facilitate supporting both v1 and v2, it was modified to support a folder heirarchy in its data
+folder watching feature. It is now possible to create subfolders in crane's data folder to separate
+v1 and v2 app files and Crane will autodiscover them and serve them as appropriate.
 
 Attribution
 -----------

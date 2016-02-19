@@ -84,6 +84,16 @@ fi
 
 
 %changelog
+* Fri Feb 19 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.5.beta
+- Merge branch '2.0_release_notes' (rbarlow@redhat.com)
+- Don't run selinux commands if selinux is disabled (pcreech@redhat.com)
+- Add release notes for Crane 2.0. (rbarlow@redhat.com)
+- Merge pull request #53 from twaugh/polling-dirs (rbarlow@redhat.com)
+- Bumping version to 2.0.0-0.5.beta (dkliban@redhat.com)
+- monitor: fix race condition (twaugh@redhat.com)
+- Set followlinks=True when using os.walk() in monitor (twaugh@redhat.com)
+- Fix data_dir polling when there are subdirectories (twaugh@redhat.com)
+
 * Thu Jan 28 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.4.beta
 - Bumping version to 2.0.0-0.4.beta (dkliban@redhat.com)
 

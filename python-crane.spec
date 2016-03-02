@@ -84,6 +84,10 @@ fi
 
 
 %changelog
+* Wed Mar 02 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.6.beta
+- Fix bash syntax on selinuxenabled check (pcreech@redhat.com)
+- Bumping version to 2.0.0-0.6.beta (dkliban@redhat.com)
+
 * Fri Feb 19 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.5.beta
 - Merge branch '2.0_release_notes' (rbarlow@redhat.com)
 - Don't run selinux commands if selinux is disabled (pcreech@redhat.com)

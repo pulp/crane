@@ -84,6 +84,9 @@ fi
 
 
 %changelog
+* Tue Mar 08 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.9.rc
+- Bumping version to 2.0.0-0.9.rc (dkliban@redhat.com)
+
 * Fri Mar 04 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-0.8.beta
 - Bumping version to 2.0.0-0.8.beta (dkliban@redhat.com)
 

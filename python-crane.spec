@@ -88,6 +88,15 @@ fi
 
 
 %changelog
+* Wed Jun 15 2016 Sean Myers <sean.myers@redhat.com> 2.0.1-0.1.beta
+- Bumping version to 2.0.1-0.1.beta (sean.myers@redhat.com)
+- Only restorecon if the /var/lib/crane exits (bkearney@redhat.com)
+- Enables strict mode for sphinx docs builds (bbouters@redhat.com)
+- Migrates README.rst content into the sphinx built project
+  (bbouters@redhat.com)
+- Adds a skeleton sphinx docs project for crane. (bbouters@redhat.com)
+- Bumping version to 2.0.1-0.1.beta (dkliban@redhat.com)
+
 * Mon Mar 14 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-1
 - Bumping version to 2.0.0-1 (dkliban@redhat.com)
 

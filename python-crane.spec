@@ -5,7 +5,7 @@
 %endif
 
 Name: python-crane
-Version: 2.0.0
+Version: 2.0.1
 Release: 1%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
@@ -70,20 +70,36 @@ rm -rf %{buildroot}%{python2_sitelib}/tests
 
 %post
 if /usr/sbin/selinuxenabled ; then
-  semanage fcontext -a -t httpd_sys_content_t '%{_var}/lib/crane(/.*)?'
-  restorecon -R -v %{_var}/lib/crane
+  if [ -d "%{_var}/lib/crane" ]; then
+    semanage fcontext -a -t httpd_sys_content_t '%{_var}/lib/crane(/.*)?'
+    restorecon -R -v %{_var}/lib/crane
+  fi
 fi
 
 %postun
 if [ $1 -eq 0 ] ; then  # final removal
   if /usr/sbin/selinuxenabled ; then
-    semanage fcontext -d -t httpd_sys_content_t '%{_var}/lib/crane(/.*)?'
-    restorecon -R -v %{_var}/lib/crane
+    if [ -d "%{_var}/lib/crane" ]; then
+      semanage fcontext -d -t httpd_sys_content_t '%{_var}/lib/crane(/.*)?'
+      restorecon -R -v %{_var}/lib/crane
+    fi
   fi
 fi
 
 
 %changelog
+* Mon Jun 27 2016 Sean Myers <sean.myers@redhat.com> 2.0.1-1
+- Bumping version to 2.0.1-1 (sean.myers@redhat.com)
+
+* Wed Jun 15 2016 Sean Myers <sean.myers@redhat.com> 2.0.1-0.1.beta
+- Bumping version to 2.0.1-0.1.beta (sean.myers@redhat.com)
+- Only restorecon if the /var/lib/crane exits (bkearney@redhat.com)
+- Enables strict mode for sphinx docs builds (bbouters@redhat.com)
+- Migrates README.rst content into the sphinx built project
+  (bbouters@redhat.com)
+- Adds a skeleton sphinx docs project for crane. (bbouters@redhat.com)
+- Bumping version to 2.0.1-0.1.beta (dkliban@redhat.com)
+
 * Mon Mar 14 2016 Dennis Kliban <dkliban@redhat.com> 2.0.0-1
 - Bumping version to 2.0.0-1 (dkliban@redhat.com)
 

@@ -88,6 +88,9 @@ fi
 
 
 %changelog
+* Mon Jun 27 2016 Sean Myers <sean.myers@redhat.com> 2.0.1-1
+- Bumping version to 2.0.1-1 (sean.myers@redhat.com)
+
 * Wed Jun 15 2016 Sean Myers <sean.myers@redhat.com> 2.0.1-0.1.beta
 - Bumping version to 2.0.1-0.1.beta (sean.myers@redhat.com)
 - Only restorecon if the /var/lib/crane exits (bkearney@redhat.com)

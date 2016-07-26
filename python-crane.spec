@@ -5,7 +5,7 @@
 %endif
 
 Name: python-crane
-Version: 2.0.2
+Version: 2.0.3
 Release: 0.1.alpha%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 

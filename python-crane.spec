@@ -88,6 +88,12 @@ fi
 
 
 %changelog
+* Tue Jul 26 2016 Sean Myers <sean.myers@redhat.com> 2.0.2-1
+- Bumping version to 2.0.2-1 (sean.myers@redhat.com)
+- Manifest digest changes when there is schemav2-v1 conversion.
+  (ipanova@redhat.com)
+- Bumping version to 2.0.2-0.1.alpha (sean.myers@redhat.com)
+
 * Wed Jun 15 2016 Sean Myers <sean.myers@redhat.com> 2.0.1-0.1.beta
 - Bumping version to 2.0.1-0.1.beta (sean.myers@redhat.com)
 - Only restorecon if the /var/lib/crane exits (bkearney@redhat.com)

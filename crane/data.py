@@ -152,7 +152,8 @@ def load_all(app):
         logger.info('loading metadata from %s' % data_dir)
         # scan data dir recursively and pick json files
         paths = [os.path.join(dirpath, f)
-                 for dirpath, dirnames, files in os.walk(data_dir)
+                 for dirpath, dirnames, files in os.walk(data_dir,
+                                                         followlinks=True)
                  for f in fnmatch.filter(files, '*.json')]
 
         # load data from each file

@@ -33,12 +33,34 @@ class TestLoadFromFile(unittest.TestCase):
         self.assertEqual(repo_id, 'redhat/foo')
         self.assertEqual(repo_tuple.url, 'http://cdn.redhat.com/foo/bar/images/')
         self.assertEqual(repo_tuple.url_path, '/foo/bar/images/')
+        self.assertEqual(repo_tuple.protected, False)
 
         images = json.loads(repo_tuple.images_json)
         self.assertTrue({'id': 'abc123'} in images)
         self.assertTrue({'id': 'xyz789'} in images)
         tags = json.loads(repo_tuple.tags_json)
         self.assertEqual(tags.get('latest'), 'abc123')
+
+    def test_demo_file_v2(self):
+        repo_id, repo_tuple, image_ids = data.load_from_file(demo_data.foo_v2_metadata_path)
+
+        self.assertEqual(repo_id, 'redhat/foo')
+        self.assertEqual(repo_tuple.url, 'http://cdn.redhat.com/foo/bar')
+        self.assertEqual(repo_tuple.url_path, '/foo/bar')
+        self.assertEqual(repo_tuple.protected, False)
+
+    def test_demo_file_v3(self):
+        repo_id, repo_tuple, image_ids = data.load_from_file(demo_data.foo_v3_metadata_path)
+
+        self.assertEqual(repo_id, 'redhat/foo')
+        self.assertEqual(repo_tuple.url, 'http://cdn.redhat.com/foo/bar')
+        self.assertEqual(repo_tuple.url_path, '/foo/bar')
+        self.assertEqual(repo_tuple.protected, False)
+
+        schema2_data = json.loads(repo_tuple.schema2_data)
+        self.assertTrue('sha256:a1d963a97357110bdbfc70767a495c8df6ddfa9bda4da3183165ca73c3b99'
+                        '0d2' in schema2_data)
+        self.assertTrue('1.25.1-musl' in schema2_data)
 
     def test_wrong_version(self):
         self.assertRaises(ValueError, data.load_from_file, demo_data.wrong_version_path)
@@ -62,7 +84,6 @@ class TestLoadAll(unittest.TestCase):
         mock_app = mock.MagicMock()
 
         data.load_all(mock_app)
-
         # verify that images data is correct
         self.assertTrue('abc123' in data.v1_response_data['images'])
         self.assertEqual(data.v1_response_data['images']['abc123'], frozenset(['redhat/foo']))
@@ -87,6 +108,19 @@ class TestLoadAll(unittest.TestCase):
         # spot-check a value
         self.assertEqual(data.v2_response_data['repos'].get('bar').url,
                          'http://cdn.redhat.com/bar/baz/images')
+
+    @mock.patch('os.walk', return_value=[
+               (demo_data.metadata_good_path_v3, ('', ), ('foo_v3.json', ))])
+    def test_with_v3_metadata_good(self, mock_walk):
+        mock_app = mock.MagicMock()
+
+        data.load_all(mock_app)
+
+        # make sure the Repo namedtuple is in the right place
+        self.assertTrue(isinstance(data.v2_response_data['repos'].get('redhat/foo'), data.V3Repo))
+        # spot-check a value
+        self.assertEqual(data.v2_response_data['repos'].get('redhat/foo').url,
+                         'http://cdn.redhat.com/foo/bar')
 
     @mock.patch.object(data.logger, 'error', spec_set=True)
     @mock.patch('os.walk', return_value=[

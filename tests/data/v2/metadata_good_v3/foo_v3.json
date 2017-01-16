@@ -1,0 +1,8 @@
+{
+    "repository": "foo",
+    "repo-registry-id": "redhat/foo",
+    "url": "http://cdn.redhat.com/foo/bar",
+    "version": 3,
+    "schema2_data": ["sha256:a1d963a97357110bdbfc70767a495c8df6ddfa9bda4da3183165ca73c3b990d2",
+                     "1.25.1-musl", "1.25.0-glibc"]
+}

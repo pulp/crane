@@ -68,6 +68,18 @@ Example:
   endpoint: localhost:5000
 
 
+.. Note::
+
+   Ensure that Apache is listening on the specified port.
+
+
+.. Note::
+   The path specified in `data_dir` should be a shared mount point between Crane and Pulp.
+   This mount point should be readable and writable by Pulp. Crane only needs read access
+   to this mount.
+
+
+
 Search
 ------
 

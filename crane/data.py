@@ -23,6 +23,7 @@ v2_response_data = {
 
 V1Repo = namedtuple('V1Repo', ['url', 'images_json', 'tags_json', 'url_path', 'protected'])
 V2Repo = namedtuple('V2Repo', ['url', 'url_path', 'protected'])
+V3Repo = namedtuple('V3Repo', ['url', 'url_path', 'schema2_data', 'protected'])
 
 
 def load_from_file(path):
@@ -43,8 +44,7 @@ def load_from_file(path):
     with open(path) as json_file:
         repo_data = json.load(json_file)
 
-    # for now, we only support version 1 of the metadata schema
-    if repo_data['version'] not in (1, 2):
+    if repo_data['version'] not in (1, 2, 3):
         raise ValueError('metadata version %d not supported' % repo_data['version'])
 
     repo_id = repo_data['repo-registry-id']
@@ -60,6 +60,12 @@ def load_from_file(path):
     elif repo_data['version'] == 2:
         repo_tuple = V2Repo(repo_data['url'],
                             url_path, repo_data.get('protected', False))
+        return repo_id, repo_tuple, None
+    elif repo_data['version'] == 3:
+        repo_tuple = V3Repo(repo_data['url'],
+                            url_path,
+                            json.dumps(repo_data['schema2_data']),
+                            repo_data.get('protected', False))
         return repo_id, repo_tuple, None
 
 
@@ -154,7 +160,6 @@ def load_all(app):
         paths = [os.path.join(dirpath, f)
                  for dirpath, dirnames, files in os.walk(data_dir)
                  for f in fnmatch.filter(files, '*.json')]
-
         # load data from each file
         for metadata_file_path in paths:
             repo_id, repo_tuple, image_ids = load_from_file(metadata_file_path)

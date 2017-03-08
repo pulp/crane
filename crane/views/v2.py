@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import httplib
-from flask import Blueprint, json, current_app, redirect
+import os
+from flask import Blueprint, json, current_app, redirect, request
 
 from crane import app_util, exceptions
 from crane.api import repository
@@ -60,6 +61,20 @@ def name_redirect(relative_path):
     base_url = repository.get_path_for_repo(name_component)
     if not base_url.endswith('/'):
         base_url += '/'
+
+    if 'manifests' in path_component:
+        schema2_data_json = repository.get_schema2_data_for_repo(name_component)
+        if schema2_data_json:
+            schema2_data = json.loads(schema2_data_json)
+            manifest, identifier = path_component.split('/')
+            # if it is a newer docker client it sets accept headers to manifest schema 1, 2 and list
+            # if it is an older docker client, he doesnot set any of accept headers
+            accept_headers = request.headers.get('Accept')
+            schema2_mediatype = 'application/vnd.docker.distribution.manifest.v2+json'
+            if schema2_mediatype in accept_headers and identifier in schema2_data:
+                path_component = os.path.join(manifest, '2', identifier)
+            else:
+                path_component = os.path.join(manifest, '1', identifier)
     url = base_url + path_component
     return redirect(url)
 

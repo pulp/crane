@@ -40,3 +40,21 @@ def get_path_for_repo(repo_id):
     :rtype: basestring
     """
     return get_v2_data()['repos'][repo_id].url
+
+
+@authorize_name
+def get_schema2_data_for_repo(repo_id):
+    """
+    Return the schema2 data for the repository.
+
+    :param repo_id: The identifier/name for the repository
+    :type repo_id: basestring
+    :returns: schema2 data for the repo
+    :rtype: list
+    """
+    repo = get_v2_data()['repos'][repo_id]
+    try:
+        schema2_data = repo.schema2_data
+    except AttributeError:
+        schema2_data = None
+    return schema2_data

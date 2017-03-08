@@ -31,8 +31,8 @@ class TestCreateApp(unittest2.TestCase):
 
     def test_handlers_added(self, mock_environ_get):
         handlers = self.app.error_handler_spec[None][None]
-        self.assertEquals(handlers[0], (exceptions.HTTPError,
-                                        app_util.http_error_handler))
+        self.assertEquals(handlers, {exceptions.HTTPError:
+                                     app_util.http_error_handler})
 
     def test_calls_init_logging(self, mock_environ_get):
         self.mock_init_logging.assert_called_once_with()

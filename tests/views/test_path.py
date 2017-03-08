@@ -14,11 +14,20 @@ class TestPath(base.BaseCraneAPITest):
         self.assertEqual(parsed_response_data['errors'][0]['message'], 'Not Found')
 
     def test_valid_repo_name_for_manifest(self):
-        response = self.test_client.get('/v2/redhat/foo/manifests/2')
+        headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
+        response = self.test_client.get('/v2/redhat/foo/manifests/1.25.1-musl', headers=headers)
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
         self.assertTrue('foo/bar/manifests/2' in response.headers['Location'])
+
+    def test_valid_repo_name_for_manifest_digest(self):
+        headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
+        response = self.test_client.get('/v2/redhat/foo/manifests/123456789', headers=headers)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
+        self.assertTrue('foo/bar/manifests/1' in response.headers['Location'])
 
     def test_valid_repo_name_for_tags(self):
         response = self.test_client.get('/v2/redhat/foo/tags/latest')

@@ -17,16 +17,6 @@ that redirects to a static file service.
 Advanced users can configure a search appliance to support "docker search" and
 can setup repository protection using SSL certificates.
 
-Docker pull
------------
-
-It is possible to ``docker pull`` an image from Crane by its tag or manifest digest.
-Manifests generated using docker >= 1.10 use schema version 2. When Pulp syncs images from
-a registry, it always requests and saves the manifest converted to schema version 1. This
-means that the original manifest digest stored in the registry is different from the manifest
-digest stored in Pulp. Crane users pulling images by the manifest ``digest``, should use the
-digest stored in Crane registry, not the digest stored in the upstream registry.
-
 Configuration
 -------------
 
@@ -262,6 +252,14 @@ Example ``apache.conf`` file:
 
 Release Notes
 -------------
+
+2.2.0
+
+The 2.2.0 release of Crane adds support for the Dcoker v2 API manifests schema version 2.
+Crane now supports version 3 of the json data file produced by Pulp. The new version enables
+Crane to serve schema version 2 manifests. In order to decide to wich schema version to redirect
+the request, Crane looks for an optional accept header specified in the request and based on this
+information redirects whether to schema version 1 or 2.
 
 2.0.0
 ~~~~~

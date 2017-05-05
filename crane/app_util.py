@@ -172,7 +172,7 @@ def get_repositories():
     """
     Get the current data used for processing requests from the flask request context
     and format it to display basic information about image ids and tags associated
-    with each repository.
+    with each v1 repository.
 
     Value corresponding to each key(repo-registry-id) is a dictionary itself
     with the following format:
@@ -191,6 +191,26 @@ def get_repositories():
         relevant_repo_data[repo_registry_id] = {'image_ids': image_ids,
                                                 'tags': json.loads(repo.tags_json),
                                                 'protected': repo.protected}
+
+    return relevant_repo_data
+
+
+def get_v2_repositories():
+    """
+    Get the current data used for processing requests from the flask request context
+    and format it to display basic information about v2 repository.
+
+    Value corresponding to each key(repo-registry-id) is a dictionary itself
+    with the following format:
+    {'protected': true/false}
+
+    :return: dictionary keyed by repo-registry-ids
+    :rtype: dict
+    """
+    all_repo_data_v2 = get_v2_data().get('repos', {})
+    relevant_repo_data = {}
+    for repo_registry_id, repo in all_repo_data_v2.items():
+        relevant_repo_data[repo_registry_id] = {'protected': repo.protected}
 
     return relevant_repo_data
 

@@ -170,11 +170,13 @@ These files are produced by a publish action in
 Crane Admin
 -----------
 
-A list of images served by Crane can be obtained by opening ``/crane/repositories`` in a web
-browser or with ``curl``. The default Apache configuration distributed with Crane restricts access
-to this URL from ``localhost`` only; when accessed from a web browser, repositories and their
-images are listed on a web page. This URL accepts an optional "Accept" header. When
-"application/json" is specified, the application responds with JSON. Here is an example:
+A list of repositories served by Crane can be obtained by opening ``/crane/repositories``
+or ``/crane/repositories/v1`` for repositories with v1 content and ``/crane/repositories/v2``
+for repositories with v2 content in a web browser or with ``curl``. The default Apache
+configuration distributed with Crane restricts access to this URL from ``localhost`` only;
+when accessed from a web browser, repositories and some basuc info is listed on a web page.
+This URL accepts an optional "Accept" header. When "application/json" is specified, the application
+responds with JSON. Here is an example of repository with v1 content:
 
 .. code-block:: json
 

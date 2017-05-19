@@ -1,15 +1,17 @@
 {# _crane/templates/repositories.html_ #}
 {% extends "layout.html" %}
-{% block title %}Repositories {% endblock %}
+{% block title %} {{repo_type}} Repositories {% endblock %}
 {% block body %}
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-12">
+          {% if repos_json is defined %}
           {% for repo_name, repo_info in repos_json.iteritems() %} 
           <div>
           <h3><strong>Repository id: </strong>{{ repo_name }}</h3>
             <h3><strong>Protected: </strong>{{ repo_info.protected }}</h3>
           </div>
+          {% if repo_info.tags is defined %}
       <table class="datatable table table-striped table-bordered">
         <thead>
           <tr>
@@ -30,8 +32,10 @@
           {% endfor %}
         </tbody>
       </table>
+	  {% endif %}
             <hr>
       {% endfor %}
+	  {% endif %}
         </div><!-- /col -->
       </div><!-- /row -->
     </div><!-- /container -->

@@ -30,6 +30,33 @@ class TestRepository(base.BaseCraneAPITest):
         self.assertEqual(response_data['qux'], expected_data['qux'])
         self.assertEqual(response_data['redhat/foo'], expected_data['redhat/foo'])
 
+    def test_repositories_v2_json(self):
+        response = self.test_client.get('/crane/repositories/v2',
+                                        headers={'Accept': 'application/json'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'application/json')
+
+        response_data = json.loads(response.data)
+        expected_data = {'registry': {'protected': False},
+                         'v2/bar': {'protected': False},
+                         'redhat/foo': {'protected': False}}
+
+        self.assertEqual(response_data['registry'], expected_data['registry'])
+        self.assertEqual(response_data['v2/bar'], expected_data['v2/bar'])
+        self.assertEqual(response_data['redhat/foo'], expected_data['redhat/foo'])
+
+    def test_repositories_v2_html(self):
+        response = self.test_client.get('/crane/repositories/v2')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers['Content-Type'], 'text/html; charset=utf-8')
+        expected_data = {'registry': {'protected': False},
+                         'v2/bar': {'protected': False},
+                         'redhat/foo': {'protected': False}}
+
+        # Assert that all repo ids in json are present in the HTML
+        for repo_id, repo_info in expected_data.iteritems():
+            self.assertTrue(response.data.find(repo_id))
+
     def test_repositories_html(self):
         response = self.test_client.get('/crane/repositories')
         self.assertEqual(response.status_code, 200)

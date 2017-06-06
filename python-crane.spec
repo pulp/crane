@@ -4,14 +4,20 @@
 %{!?python2_sitearch: %global python2_sitearch %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 %endif
 
+# The release number 
+%global release_number 0.1.alpha
+
+# Create tag for the Source0 and setup
+%global git_tag %{name}-%{version}-%{release_number}
+
 Name: python-crane
 Version: 2.2.0
-Release: 0.1.alpha%{?dist}
+Release: %{release_number}%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 
 License: GPLv2
 URL: https://github.com/pulp/crane
-Source0: %{name}-%{version}.tar.gz
+Source0: https://codeload.github.com/pulp/crane/tar.gz/%{git_tag}#/%{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch: noarch
 
@@ -32,7 +38,7 @@ settings.
 
 
 %prep
-%setup -q -n %{name}-%{version}
+%setup -q -n crane-%{git_tag}
 
 
 %build

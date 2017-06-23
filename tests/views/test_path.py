@@ -21,8 +21,24 @@ class TestPath(base.BaseCraneAPITest):
         self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
         self.assertTrue('foo/bar/manifests/2' in response.headers['Location'])
 
+    def test_valid_repo_name_for_manifest_list(self):
+        headers = {'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json'}
+        response = self.test_client.get('/v2/redhat/zoo/manifests/latest', headers=headers)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
+        self.assertTrue('zoo/bar/manifests/list' in response.headers['Location'])
+
     def test_valid_repo_name_for_manifest_digest(self):
         headers = {'Accept': 'application/vnd.docker.distribution.manifest.v2+json'}
+        response = self.test_client.get('/v2/redhat/foo/manifests/123456789', headers=headers)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
+        self.assertTrue('foo/bar/manifests/1' in response.headers['Location'])
+
+    def test_valid_repo_name_for_manifest_list_digest(self):
+        headers = {'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json'}
         response = self.test_client.get('/v2/redhat/foo/manifests/123456789', headers=headers)
 
         self.assertEqual(response.status_code, 302)

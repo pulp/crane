@@ -63,15 +63,39 @@ def name_redirect(relative_path):
         base_url += '/'
 
     if 'manifests' in path_component:
-        schema2_data_json = repository.get_schema2_data_for_repo(name_component)
-        if schema2_data_json:
-            schema2_data = json.loads(schema2_data_json)
+        schema2_data = repository.get_schema2_data_for_repo(name_component)
+        manifest_list_data = repository.get_manifest_list_data_for_repo(name_component)
+        manifest_list_amd64_tags = repository.get_manifest_list_amd64_for_repo(name_component)
+        if schema2_data:
+            schema2_data = json.loads(schema2_data)
+        if manifest_list_data:
+            manifest_list_data = json.loads(manifest_list_data)
+        if manifest_list_amd64_tags:
+            manifest_list_amd64_tags = json.loads(manifest_list_amd64_tags)
+        if schema2_data or manifest_list_data:
             manifest, identifier = path_component.split('/')
             # if it is a newer docker client it sets accept headers to manifest schema 1, 2 and list
             # if it is an older docker client, he doesnot set any of accept headers
             accept_headers = request.headers.get('Accept')
             schema2_mediatype = 'application/vnd.docker.distribution.manifest.v2+json'
-            if schema2_mediatype in accept_headers and identifier in schema2_data:
+            manifest_list_mediatype = 'application/vnd.docker.distribution.manifest.list.v2+json'
+            # check first manifest list type
+            if manifest_list_mediatype in accept_headers and identifier in manifest_list_data:
+                path_component = os.path.join(manifest, 'list', identifier)
+            # this is needed for older clients which do not understand manifest list
+            elif identifier in manifest_list_amd64_tags.keys():
+                if schema2_mediatype in accept_headers:
+                    path_component = os.path.join(
+                        manifest, str(manifest_list_amd64_tags[identifier][1]),
+                        manifest_list_amd64_tags[identifier][0])
+                elif manifest_list_amd64_tags[identifier][1] == 1:
+                    path_component = os.path.join(
+                        manifest, '1', manifest_list_amd64_tags[identifier][0])
+                # this is needed in case when there is no amd64 image manifest, but there are within
+                # one repo manifest list and image manifest with the same tag
+                else:
+                    path_component = os.path.join(manifest, '1', identifier)
+            elif schema2_mediatype in accept_headers and identifier in schema2_data:
                 path_component = os.path.join(manifest, '2', identifier)
             else:
                 path_component = os.path.join(manifest, '1', identifier)

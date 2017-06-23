@@ -1,0 +1,14 @@
+{
+    "repository": "zoo",
+    "repo-registry-id": "redhat/zoo",
+    "url": "http://cdn.redhat.com/zoo/bar",
+    "version": 4,
+    "schema2_data": ["sha256:a1d963a97357110bdbfc70767a495c8df6ddfa9bda4da3183165ca73c3b990d2",
+                     "1.25.1-musl", "1.25.0-glibc"],
+    "manifest_list_amd64_tags": {"bar": ["sha256:c55544de64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf", 2],
+                                 "latest": ["sha256:c55544de64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf", 1]},
+    "protected": false,
+    "type": "pulp-docker-redirect",
+    "manifest_list_data": ["bar", "sha256:3e0e8f106ef40081ed9977a432dcf1720e4a6af101b243686b3dc548540e7ca8",
+                           "sha256:a90b7a658d44eadc569a296d45217115e61add1a7ae0958f084841c5f3ce7956", "latest"]
+}

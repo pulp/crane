@@ -267,9 +267,17 @@ Example ``apache.conf`` file:
 Release Notes
 -------------
 
+3.0.0
+
+The 3.0.0 release of Crane adds support for the Docker v2 API manifest lists schema version 2.
+Crane now supports version 4 of the json data file produced by Pulp. The new version enables
+Crane to serve manifest lists. In order to decide to which manifest type to redirect
+the request, Crane looks for an optional accept header specified in the request and based on this
+information redirects whether to the manifest list or image manifest.
+
 2.2.0
 
-The 2.2.0 release of Crane adds support for the Dcoker v2 API manifests schema version 2.
+The 2.2.0 release of Crane adds support for the Docker v2 API manifests schema version 2.
 Crane now supports version 3 of the json data file produced by Pulp. The new version enables
 Crane to serve schema version 2 manifests. In order to decide to wich schema version to redirect
 the request, Crane looks for an optional accept header specified in the request and based on this

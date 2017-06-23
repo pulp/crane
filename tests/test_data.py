@@ -62,6 +62,27 @@ class TestLoadFromFile(unittest.TestCase):
                         '0d2' in schema2_data)
         self.assertTrue('1.25.1-musl' in schema2_data)
 
+    def test_demo_file_v4(self):
+        repo_id, repo_tuple, image_ids = data.load_from_file(demo_data.foo_v4_metadata_path)
+
+        self.assertEqual(repo_id, 'redhat/zoo')
+        self.assertEqual(repo_tuple.url, 'http://cdn.redhat.com/zoo/bar')
+        self.assertEqual(repo_tuple.url_path, '/zoo/bar')
+        self.assertEqual(repo_tuple.protected, False)
+
+        schema2_data = json.loads(repo_tuple.schema2_data)
+        self.assertTrue('sha256:a1d963a97357110bdbfc70767a495c8df6ddfa9bda4da3183165ca73c3b99'
+                        '0d2' in schema2_data)
+        self.assertTrue('1.25.1-musl' in schema2_data)
+        manifest_list_data = json.loads(repo_tuple.manifest_list_data)
+        self.assertTrue('bar' in manifest_list_data)
+        self.assertTrue('sha256:a90b7a658d44eadc569a296d45217115e61add1a7ae0958f084841c5f3ce7'
+                        '956' in manifest_list_data)
+        manifest_list_amd64 = json.loads(repo_tuple.manifest_list_amd64_tags)
+        self.assertTrue('bar' in manifest_list_amd64.keys())
+        expected = ["sha256:c55544de64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf", 2]
+        self.assertEqual(manifest_list_amd64['bar'], expected)
+
     def test_wrong_version(self):
         self.assertRaises(ValueError, data.load_from_file, demo_data.wrong_version_path)
 
@@ -121,6 +142,19 @@ class TestLoadAll(unittest.TestCase):
         # spot-check a value
         self.assertEqual(data.v2_response_data['repos'].get('redhat/foo').url,
                          'http://cdn.redhat.com/foo/bar')
+
+    @mock.patch('os.walk', return_value=[
+               (demo_data.metadata_good_path_v4, ('', ), ('zoo_v4.json', ))])
+    def test_with_v4_metadata_good(self, mock_walk):
+        mock_app = mock.MagicMock()
+
+        data.load_all(mock_app)
+
+        # make sure the Repo namedtuple is in the right place
+        self.assertTrue(isinstance(data.v2_response_data['repos'].get('redhat/zoo'), data.V4Repo))
+        # spot-check a value
+        self.assertEqual(data.v2_response_data['repos'].get('redhat/zoo').url,
+                         'http://cdn.redhat.com/zoo/bar')
 
     @mock.patch.object(data.logger, 'error', spec_set=True)
     @mock.patch('os.walk', return_value=[

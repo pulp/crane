@@ -24,6 +24,8 @@ v2_response_data = {
 V1Repo = namedtuple('V1Repo', ['url', 'images_json', 'tags_json', 'url_path', 'protected'])
 V2Repo = namedtuple('V2Repo', ['url', 'url_path', 'protected'])
 V3Repo = namedtuple('V3Repo', ['url', 'url_path', 'schema2_data', 'protected'])
+V4Repo = namedtuple('V4Repo', ['url', 'url_path', 'schema2_data', 'manifest_list_data',
+                               'manifest_list_amd64_tags', 'protected'])
 
 
 def load_from_file(path):
@@ -44,7 +46,7 @@ def load_from_file(path):
     with open(path) as json_file:
         repo_data = json.load(json_file)
 
-    if repo_data['version'] not in (1, 2, 3):
+    if repo_data['version'] not in (1, 2, 3, 4):
         raise ValueError('metadata version %d not supported' % repo_data['version'])
 
     repo_id = repo_data['repo-registry-id']
@@ -65,6 +67,14 @@ def load_from_file(path):
         repo_tuple = V3Repo(repo_data['url'],
                             url_path,
                             json.dumps(repo_data['schema2_data']),
+                            repo_data.get('protected', False))
+        return repo_id, repo_tuple, None
+    elif repo_data['version'] == 4:
+        repo_tuple = V4Repo(repo_data['url'],
+                            url_path,
+                            json.dumps(repo_data['schema2_data']),
+                            json.dumps(repo_data['manifest_list_data']),
+                            json.dumps(repo_data['manifest_list_amd64_tags']),
                             repo_data.get('protected', False))
         return repo_id, repo_tuple, None
 

@@ -62,8 +62,9 @@ def name_redirect(relative_path):
     if not base_url.endswith('/'):
         base_url += '/'
 
-    if 'manifests' in path_component:
-        schema2_data = repository.get_schema2_data_for_repo(name_component)
+    schema2_data = repository.get_schema2_data_for_repo(name_component)
+
+    if 'manifests' in path_component and schema2_data is not None:
         manifest_list_data = repository.get_manifest_list_data_for_repo(name_component)
         manifest_list_amd64_tags = repository.get_manifest_list_amd64_for_repo(name_component)
         if schema2_data:
@@ -72,8 +73,8 @@ def name_redirect(relative_path):
             manifest_list_data = json.loads(manifest_list_data)
         if manifest_list_amd64_tags:
             manifest_list_amd64_tags = json.loads(manifest_list_amd64_tags)
+        manifest, identifier = path_component.split('/')
         if schema2_data or manifest_list_data:
-            manifest, identifier = path_component.split('/')
             # if it is a newer docker client it sets accept headers to manifest schema 1, 2 and list
             # if it is an older docker client, he doesnot set any of accept headers
             accept_headers = request.headers.get('Accept')
@@ -99,6 +100,9 @@ def name_redirect(relative_path):
                 path_component = os.path.join(manifest, '2', identifier)
             else:
                 path_component = os.path.join(manifest, '1', identifier)
+        # this is needed for V3Repo which do not have schema2 manifests
+        else:
+            path_component = os.path.join(manifest, '1', identifier)
     url = base_url + path_component
     return redirect(url)
 

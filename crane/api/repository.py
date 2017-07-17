@@ -56,7 +56,7 @@ def get_schema2_data_for_repo(repo_id):
     try:
         schema2_data = repo.schema2_data
     except AttributeError:
-        schema2_data = []
+        schema2_data = None
     return schema2_data
 
 

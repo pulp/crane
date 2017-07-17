@@ -19,7 +19,7 @@ class TestPath(base.BaseCraneAPITest):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
-        self.assertTrue('foo/bar/manifests/2' in response.headers['Location'])
+        self.assertTrue('foo/bar/manifests/1' in response.headers['Location'])
 
     def test_valid_repo_name_for_manifest_list(self):
         headers = {'Accept': 'application/vnd.docker.distribution.manifest.list.v2+json'}

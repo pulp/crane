@@ -1,6 +1,5 @@
 language: python
 python:
-  - "2.6"
   - "2.7"
   - "pypy"
 before_install:
@@ -9,7 +8,6 @@ before_install:
  # Create a fake RPM package so that the python-rhsm certificate class will load properly
   - mkdir rpm
   - touch rpm/__init__.py
-  - .travis/install_m2crypto.sh
 install:
   - "pip install ."
   - "pip install -r test-requirements.txt"

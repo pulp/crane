@@ -38,7 +38,7 @@ settings.
 
 
 %prep
-%setup -q -n crane-%{git_tag}
+%setup -q
 
 
 %build

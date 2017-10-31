@@ -173,8 +173,37 @@ class TestLoadAll(unittest.TestCase):
 
     @mock.patch.object(data.logger, 'error', spec_set=True)
     @mock.patch('os.walk', return_value=[
-                (demo_data.metadata_bad_path_v2, ('', ), ('wrong_version_2.json', ))])
+        (demo_data.metadata_bad_path, ('',), ('invalid_link.json1',))])
+    def test_with_metadata_bad_link(self, mock_error, mock_walk):
+        mock_app = mock.MagicMock()
+
+        data.load_all(mock_app)
+
+        # make sure the response data was not changed
+        self.assertEqual(data.v1_response_data['repos'], {})
+        self.assertEqual(data.v1_response_data['images'], {})
+
+        # make sure an error was logged
+        self.assertEqual(mock_error.call_count, 1)
+
+    @mock.patch.object(data.logger, 'error', spec_set=True)
+    @mock.patch('os.walk', return_value=[
+                (demo_data.metadata_bad_path_v2, ('', ), ('invalid_link_2.json', ))])
     def test_with_wrong_path(self, mock_error, mock_walk):
+        mock_app = mock.MagicMock()
+
+        data.load_all(mock_app)
+
+        # make sure the response data was not changed
+        self.assertEqual(data.v2_response_data['repos'], {})
+
+        # make sure an error was logged
+        self.assertEqual(mock_error.call_count, 1)
+
+    @mock.patch.object(data.logger, 'error', spec_set=True)
+    @mock.patch('os.walk', return_value=[
+        (demo_data.metadata_bad_path_v2, ('',), ('wrong_version_2.json1',))])
+    def test_with_wrong_path_v2_bad_link(self, mock_error, mock_walk):
         mock_app = mock.MagicMock()
 
         data.load_all(mock_app)

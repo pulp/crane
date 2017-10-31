@@ -173,14 +173,18 @@ def load_all(app):
                  for f in fnmatch.filter(files, '*.json')]
         # load data from each file
         for metadata_file_path in paths:
-            repo_id, repo_tuple, image_ids = load_from_file(metadata_file_path)
+            try:
+                repo_id, repo_tuple, image_ids = load_from_file(metadata_file_path)
+            except Exception, e:
+                logger.error('skipping current metadata load: %s' % str(e))
+                continue
+
             if isinstance(repo_tuple, V1Repo):
                 v1_repos[repo_id] = repo_tuple
                 for image_id in image_ids:
                     images.setdefault(image_id, set()).add(repo_id)
             else:
                 v2_repos[repo_id] = repo_tuple
-
         # make each set immutable
         for image_id in images.keys():
             images[image_id] = frozenset(images[image_id])

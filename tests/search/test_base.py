@@ -53,21 +53,47 @@ class TestSearchBackend(unittest2.TestCase):
         })
 
     @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
-    def test_filter_authorized_result(self, mock_is_authorized):
+    @mock.patch('crane.app_util.name_is_authorized', spec_set=True)
+    def test_filter_authorized_result(self, mock_name_is_authorized, mock_is_authorized):
         result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
                                    **base.SearchResult.result_defaults)
-
+        mock_name_is_authorized.side_effect = exceptions.HTTPError(
+            mock.Mock(status=404), 'not found')
         ret = self.backend._filter_result(result)
 
         self.assertIs(ret, True)
         mock_is_authorized.assert_called_once_with(result.name)
 
     @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
-    def test_filter_nonauthorized_result(self, mock_is_authorized):
+    @mock.patch('crane.app_util.name_is_authorized', spec_set=True)
+    def test_filter_authorized_result_v2(self, mock_v2_is_authorized, mock_v1_authorized):
+        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                   True, True, 8, True)
+        mock_v1_authorized.side_effect = exceptions.HTTPError(mock.Mock(status=404), 'not found')
+        ret = self.backend._filter_result(result)
+
+        self.assertIs(ret, True)
+        mock_v2_is_authorized.assert_called_once_with(result.name)
+
+    @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
+    @mock.patch('crane.app_util.name_is_authorized', spec_set=True)
+    def test_filter_non_authorized_result_v2(self, mock_v2_is_authorized, mock_v1_authorized):
+        result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
+                                   True, True, 8, True)
+        mock_v1_authorized.side_effect = exceptions.HTTPError(mock.Mock(status=404), 'not found')
+        mock_v2_is_authorized.side_effect = exceptions.HTTPError(mock.Mock(status=404), 'not found')
+        ret = self.backend._filter_result(result)
+
+        self.assertIs(ret, False)
+        mock_v2_is_authorized.assert_called_once_with(result.name)
+
+    @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
+    @mock.patch('crane.app_util.name_is_authorized', spec_set=True)
+    def test_filter_nonauthorized_result(self, mock_name_authorized, mock_is_authorized):
         result = base.SearchResult('rhel', 'Red Hat Enterprise Linux',
                                    **base.SearchResult.result_defaults)
         mock_is_authorized.side_effect = exceptions.HTTPError(httplib.NOT_FOUND)
-
+        mock_name_authorized.side_effect = exceptions.HTTPError(httplib.NOT_FOUND)
         ret = self.backend._filter_result(result)
 
         self.assertIs(ret, False)

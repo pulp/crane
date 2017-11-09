@@ -83,7 +83,8 @@ GSA
 The API supporting ``docker search`` can be enabled by configuring a Google
 Search Appliance for use by crane. In crane's configuration file, a section
 ``[gsa]`` must exist with key ``url``. The URL will be used in a GET request,
-and a query parameter ``q`` will be added with a search term.
+and a query parameter ``q`` will be added with a search term. This is available
+only for V1 docker content.
 
 Example:
 
@@ -105,7 +106,8 @@ The API supporting ``docker search`` can be enabled by configuring a Solr
 deployment for use by crane. In crane's configuration file, a section
 ``[solr]`` must exist with key ``url``. The URL will be used in a GET request,
 and it must contain the string ``{0}`` as a placeholder where the search string
-will be inserted.
+will be inserted. The search returns both results containing both V1
+as well as V2 docker content.
 
 Example:
 
@@ -266,6 +268,11 @@ Example ``apache.conf`` file:
 
 Release Notes
 -------------
+
+3.1.0
+
+The 3.1.0 release of Crane adds support for the Solr search to return results
+containing V1 as well as V2 docker content.
 
 3.0.0
 

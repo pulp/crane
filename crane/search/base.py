@@ -59,9 +59,15 @@ class SearchBackend(object):
         :rtype:     bool
         """
         try:
-            app_util.repo_is_authorized(result.name)
+            # check against repositories in V2 data dict
+            app_util.name_is_authorized(result.name)
+
         except exceptions.HTTPError:
-            return False
+            try:
+                # check against repositories in v1 data dict
+                app_util.repo_is_authorized(result.name)
+            except exceptions.HTTPError:
+                return False
         return True
 
 

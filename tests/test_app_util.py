@@ -67,6 +67,13 @@ class TestAuthorizeRepoId(FlaskContextBase):
         self.assertEquals(result, 'foo')
 
     @mock.patch('crane.app_util._get_certificate')
+    def test_passes_if_auth_valid_webassets(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
+        result = mock_repo_func('foo/webassets')
+        self.assertEquals(result, 'foo')
+
+    @mock.patch('crane.app_util._get_certificate')
     def test_bypass_if_not_protected(self, mock_get_cert):
         cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
         mock_get_cert.return_value = cert
@@ -116,6 +123,14 @@ class TestAuthorizeName(FlaskContextBase):
         cert.check_path = mock.Mock(return_value=True)
         mock_get_cert.return_value = cert
         result = mock_name_func('protected')
+        self.assertEquals(result, 'foo')
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_if_protected_webassets(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        cert.check_path = mock.Mock(return_value=True)
+        mock_get_cert.return_value = cert
+        result = mock_name_func('barwebassets')
         self.assertEquals(result, 'foo')
 
     @mock.patch('crane.app_util._get_certificate')
@@ -172,6 +187,13 @@ class TestAuthorizeImageId(FlaskContextBase):
         cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
         mock_get_cert.return_value = cert
         result = mock_image_func('baz123')
+        self.assertEquals(result, 'foo')
+
+    @mock.patch('crane.app_util._get_certificate')
+    def test_passes_if_auth_valid_webassets(self, mock_get_cert):
+        cert = certificate.create_from_file(demo_data.demo_entitlement_cert_path)
+        mock_get_cert.return_value = cert
+        result = mock_image_func('foowebassets123')
         self.assertEquals(result, 'foo')
 
     @mock.patch('crane.app_util._get_certificate')

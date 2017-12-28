@@ -1,0 +1,7 @@
+{   
+    "repository": "bar-webassets",
+    "repo-registry-id": "barwebassets",
+    "url": "http://access.redhat.com/webassets/docker/bar/baz/",
+    "version": 2,
+    "protected": true
+}

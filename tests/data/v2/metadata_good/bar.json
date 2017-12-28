@@ -1,6 +1,6 @@
 {   
     "repository": "bar",
     "repo-registry-id": "bar",    
-    "url": "http://cdn.redhat.com/bar/baz/images",
+    "url": "http://access.redhat.com/webassets/docker/bar/baz/images",
     "version": 2
 }

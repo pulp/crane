@@ -1,0 +1,16 @@
+{
+    "images": [
+        {
+            "id": "foowebassets123"
+        }
+    ],
+    "repository": "foo-webassets",
+    "repo-registry-id": "foo/webassets",
+    "url": "http://access.redhat.com/webassets/docker/foo/path/bar/baz/images",
+    "version": 1,
+    "protected": "true",
+    "tags": {
+        "latest": "foowebassets123"
+    }
+
+}

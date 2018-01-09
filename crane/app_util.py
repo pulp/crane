@@ -71,9 +71,19 @@ def repo_is_authorized(repo_id):
 
     if repo_tuple.protected:
         cert = _get_certificate()
-        if not cert or not cert.check_path(repo_tuple.url_path):
+        logger.info('cert when checking repo %s' % cert)
+        value = repo_tuple.url_path
+        logger.info('path before check %s' % value)
+        # In production environment, due to Akamai storage string
+        # '/webassets/docker' gets added to the url described in pulp
+        # metadata files which fails further checks so stripping it
+        if value.startswith('/webassets/docker'):
+            value = value[len('/webassets/docker'):]
+        logger.info('path after check %s' % value)
+        if not cert or not cert.check_path(value):
             # return 404 so we don't reveal the existence of repos that the user
             # is not authorized for
+            logger.info('repo %s is protected and client is not authorized to access it' % value)
             raise exceptions.HTTPError(httplib.NOT_FOUND)
 
 
@@ -107,9 +117,19 @@ def authorize_image_id(func):
             if not repo_tuple.protected:
                 found_match = True
                 break
-            elif cert and cert.check_path(repo_tuple.url_path):
-                found_match = True
-                break
+            elif repo_tuple.protected:
+                value = repo_tuple.url_path
+                logger.info('path before check for images %s' % value)
+                # In production environment, due to Akamai storage string
+                # '/webassets/docker' gets added to the url described in pulp
+                # metadata files which fails further checks so stripping it
+                if value.startswith('/webassets/docker'):
+                    value = value[len('/webassets/docker'):]
+                logger.info('path after check images %s' % value)
+                if cert and cert.check_path(value):
+                    found_match = True
+                    logger.info('The requested path is protected and the client can access it')
+                    break
 
         if not found_match:
             # return 404 so we don't reveal the existence of images that the user
@@ -260,9 +280,19 @@ def name_is_authorized(name):
 
     if v2_repo_tuple.protected:
         cert = _get_certificate()
-        if not cert or not cert.check_path(v2_repo_tuple.url_path):
+        logger.info('cert when checking repo %s' % cert)
+        value = v2_repo_tuple.url_path
+        logger.info('path before check %s' % value)
+        # In production environment, due to Akamai storage string
+        # '/webassets/docker' gets added to the url described in pulp
+        # metadata files which fails further checks so stripping it
+        if value.startswith('/webassets/docker'):
+            value = value[len('/webassets/docker'):]
+        logger.info('path after check %s' % value)
+        if not cert or not cert.check_path(value):
             # return 404 so we don't reveal the existence of repos that the user
             # is not authorized for
+            logger.info('repo %s is protected and client is not authorized to access it' % value)
             raise exceptions.HTTPError(httplib.NOT_FOUND)
 
 

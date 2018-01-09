@@ -44,7 +44,7 @@ class TestLoadFromFile(unittest.TestCase):
     def test_demo_file_v2(self):
         repo_id, repo_tuple, image_ids = data.load_from_file(demo_data.foo_v2_metadata_path)
 
-        self.assertEqual(repo_id, 'redhat/foo')
+        self.assertEqual(repo_id, 'redhat/foo2')
         self.assertEqual(repo_tuple.url, 'http://cdn.redhat.com/foo/bar')
         self.assertEqual(repo_tuple.url_path, '/foo/bar')
         self.assertEqual(repo_tuple.protected, False)
@@ -128,7 +128,7 @@ class TestLoadAll(unittest.TestCase):
         self.assertTrue(isinstance(data.v2_response_data['repos'].get('bar'), data.V2Repo))
         # spot-check a value
         self.assertEqual(data.v2_response_data['repos'].get('bar').url,
-                         'http://cdn.redhat.com/bar/baz/images')
+                         'http://access.redhat.com/webassets/docker/bar/baz/images')
 
     @mock.patch('os.walk', return_value=[
                (demo_data.metadata_good_path_v3, ('', ), ('foo_v3.json', ))])

@@ -1,12 +1,13 @@
 from __future__ import absolute_import
 import httplib
+import logging
 import os
 from flask import Blueprint, json, current_app, redirect, request
 
 from crane import app_util, exceptions
 from crane.api import repository
 
-
+log = logging.getLogger('__name__')
 section = Blueprint('v2', __name__, url_prefix='/v2')
 
 
@@ -77,7 +78,7 @@ def name_redirect(relative_path):
         if schema2_data or manifest_list_data:
             # if it is a newer docker client it sets accept headers to manifest schema 1, 2 and list
             # if it is an older docker client, he doesnot set any of accept headers
-            accept_headers = request.headers.get('Accept')
+            accept_headers = get_accept_headers(request)
             schema2_mediatype = 'application/vnd.docker.distribution.manifest.v2+json'
             manifest_list_mediatype = 'application/vnd.docker.distribution.manifest.list.v2+json'
             # check first manifest list type
@@ -125,3 +126,28 @@ def handle_error(error):
     response.headers['Content-Type'] = 'application/json'
     response.status_code = error.status_code
     return response
+
+
+def get_accept_headers(request):
+    """
+    Parse the Accept: request header and return a set of media types.
+
+    WSGI will turn multiple Accept: headers into a comma-separated string,
+    which is expected according to HTTP standards.
+
+    https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+
+    :param request:    flask request object for a request
+    :type  request:    flask.Request
+
+    :return:    set of Accept: headers
+    :rtype:     set
+    """
+    accept_headers = request.headers.get('Accept')
+    log.debug("Accept headers from client: %s", accept_headers)
+    if not accept_headers:
+        return set()
+    accept_headers = accept_headers.split(',')
+    # Accept headers may contain additional quality parameters after ;
+    # We will simply discard that for now
+    return set(x.partition(';')[0].strip() for x in accept_headers)

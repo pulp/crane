@@ -5,13 +5,13 @@
 %endif
 
 # The release number 
-%global release_number 0.4.rc
+%global release_number 0.2.beta
 
 # Create tag for the Source0 and setup
 %global git_tag %{name}-%{version}-%{release_number}
 
 Name: python-crane
-Version: 3.1.0
+Version: 3.1.1
 Release: %{release_number}%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 

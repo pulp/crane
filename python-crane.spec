@@ -11,7 +11,7 @@
 %global git_tag %{name}-%{version}-%{release_number}
 
 Name: python-crane
-Version: 2.2.0
+Version: 3.2.0
 Release: %{release_number}%{?dist}
 Summary: docker-registry-like API with redirection, as a wsgi app
 

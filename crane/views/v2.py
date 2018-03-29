@@ -2,9 +2,11 @@ from __future__ import absolute_import
 import httplib
 import logging
 import os
+import urlparse
+import time
 from flask import Blueprint, json, current_app, redirect, request
 
-from crane import app_util, exceptions
+from crane import app_util, exceptions, config
 from crane.api import repository
 
 log = logging.getLogger('__name__')
@@ -105,6 +107,11 @@ def name_redirect(relative_path):
         else:
             path_component = os.path.join(manifest, '1', identifier)
     url = base_url + path_component
+
+    # perform CDN rewrites and auth
+    url = cdn_rewrite_redirect_url(url)
+    url = cdn_auth_token_url(url)
+
     return redirect(url)
 
 
@@ -151,3 +158,50 @@ def get_accept_headers(request):
     # Accept headers may contain additional quality parameters after ;
     # We will simply discard that for now
     return set(x.partition(';')[0].strip() for x in accept_headers)
+
+
+def cdn_rewrite_redirect_url(url):
+    """
+    Rewrites the redirect URL by performing a simple match and replace.
+
+    Returns the unmodified URL if both the url_match and url_replace options
+    are not specified.
+
+    :param url:    URL for redirect
+    :type  url:    string
+
+    :return:    rewritten URL (if configured)
+    :rtype:     string
+    """
+    url_match = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_MATCH)
+    url_replace = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_REPLACE)
+    if url_match and url_replace:
+        return url.replace(url_match, url_replace)
+    return url
+
+def cdn_auth_token_url(url):
+    """
+    Adds the token auth param to the redirect URL following Akamai's Auth Token
+    2.0 Specification.
+
+    Returns the unmodified URL if the auth_secret configuration option is not
+    specified.
+
+    :param url:    URL for redirect
+    :type  url:    string
+
+    :return:    URL with authorization token (if configured)
+    :rtype:     string
+    """
+    auth_secret = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_AUTH_SECRET)
+    if auth_secret:
+        cdn_path = urlparse.urlparse(url).path
+        auth_param = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_AUTH_PARAM)
+        auth_ttl = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_AUTH_TTL)
+        auth_exp = int(time.time()) + auth_ttl
+        auth_algo = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_AUTH_ALGO).lower()
+
+        auth_token = app_util.generate_cdn_url_token(cdn_path, auth_secret, auth_exp, auth_algo)
+        auth_qs = '?%s=%s' % (auth_param, auth_token)
+        return url + auth_qs
+    return url

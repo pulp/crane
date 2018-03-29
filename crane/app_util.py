@@ -1,3 +1,6 @@
+import binascii
+import hashlib
+import hmac
 import httplib
 import logging
 from functools import wraps
@@ -311,3 +314,34 @@ def validate_and_transform_repo_name(path):
             path_component = component + path.split(component, 1)[1]
 
     return name_component, path_component
+
+
+def generate_cdn_url_token(path, secret, expiration, algorithm):
+    """
+    Generates a query string token to be validated at the CDN in order to
+    provide authorization of resources
+
+    :param path: path to be secured
+    :type path: string
+    :param secret: secret used for generating hmac token
+    :type secret: string
+    :param expiration: unix timestamp for token expiration
+    :type expiration: int
+    :param algorithm: hashing algorithm (one of: sha256, sha1, md5)
+    :type algorithm: string
+
+    :return: string containing query string token
+    :rtype: string
+    """
+
+    field_delimiter = '~'
+    new_token = 'exp=%d%c' % (expiration, field_delimiter)
+
+    hash_source = '%surl=%s' % (new_token, path)
+    token_hmac = hmac.new(
+        binascii.a2b_hex(secret),
+        hash_source,
+        getattr(hashlib, algorithm)).hexdigest()
+
+    new_token += 'hmac=%s' % token_hmac
+    return new_token

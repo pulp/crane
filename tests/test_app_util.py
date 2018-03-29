@@ -295,3 +295,16 @@ class TestValidateGetV2Repositories(unittest.TestCase):
         mock_get_v2_data.return_value = {'repos': {}}
         ret = app_util.get_v2_repositories()
         self.assertEqual(ret, {})
+
+
+class TestGenerateCDNToken(unittest.TestCase):
+
+    def test_generate_cdn_url_token(self):
+        path = '/content/repo/manifests/123'
+        secret = 'abc123'
+        exp = 1933027200
+        algo = 'sha256'
+        expected_hmac = 'd039ac10e019fd13824a3f861b4f55df40e2a402d102b5266194fff6f3a24ed0'
+        token = app_util.generate_cdn_url_token(path, secret, exp, algo)
+        self.assertIn('exp=%s' % exp, token)
+        self.assertIn('hmac=%s' % expected_hmac, token)

@@ -174,6 +174,7 @@ def load_all(app):
         # load data from each file
         for metadata_file_path in paths:
             try:
+                logger.debug('loading: %s' % metadata_file_path)
                 repo_id, repo_tuple, image_ids = load_from_file(metadata_file_path)
             except Exception, e:
                 logger.error('skipping current metadata load: %s' % str(e))
@@ -196,5 +197,6 @@ def load_all(app):
         v2_response_data = {
             'repos': v2_repos
         }
+        logger.info('finished loading metadata')
     except Exception, e:
         logger.error('aborting metadata load: %s' % str(e))

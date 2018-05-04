@@ -316,6 +316,11 @@ Example ``apache.conf`` file:
 Release Notes
 -------------
 
+3.2.0
+
+The 3.2.0 release of Crane adds support for rewriting base URLs of repos to a new location.
+Also adds support for generating HMAC tokens for query string authorization with CDN providers.
+
 3.1.0
 
 The 3.1.0 release of Crane adds support for the Solr search to return results

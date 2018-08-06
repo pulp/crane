@@ -21,6 +21,8 @@ PATCH="
  extern SSL_METHOD *SSLv3_method(void);
  %rename(sslv23_method) SSLv23_method;"
 
+sudo ln -s /usr/include/x86_64-linux-gnu/openssl/opensslconf.h /usr/include/openssl/opensslconf.h
+
 pip install --download="." m2crypto==0.21.1
 tar -xf M2Crypto-*.tar.gz
 rm M2Crypto-*.tar.gz

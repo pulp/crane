@@ -78,7 +78,8 @@ class TestSearch(BaseSolrTest):
 
     @mock.patch('crane.app_util.name_is_authorized', spec_set=True)
     @mock.patch('crane.app_util.repo_is_authorized', spec_set=True)
-    def test_workflow_filter_false_with_image_repository_document_kind(self, mock_is_authorized, mock_name_authorized):
+    def test_workflow_filter_false_with_image_repository_document_kind(self, mock_is_authorized,
+                                                                       mock_name_authorized):
         """
         When the should_filter attribute of SearchResult instance is True,
         the base implementation of the filter_results should be called and

@@ -179,6 +179,7 @@ def cdn_rewrite_redirect_url(url):
         return url.replace(url_match, url_replace)
     return url
 
+
 def cdn_auth_token_url(url):
     """
     Adds the token auth param to the redirect URL following Akamai's Auth Token
@@ -199,7 +200,8 @@ def cdn_auth_token_url(url):
         auth_param = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_AUTH_PARAM)
         auth_ttl = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_AUTH_TTL)
         auth_exp = int(time.time()) + auth_ttl
-        auth_algo = current_app.config.get(config.SECTION_CDN, {}).get(config.KEY_URL_AUTH_ALGO).lower()
+        auth_algo = current_app.config.get(config.SECTION_CDN, {}).\
+            get(config.KEY_URL_AUTH_ALGO).lower()
 
         auth_token = app_util.generate_cdn_url_token(cdn_path, auth_secret, auth_exp, auth_algo)
         auth_qs = '?%s=%s' % (auth_param, auth_token)

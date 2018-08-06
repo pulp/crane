@@ -126,7 +126,8 @@ def read_config(app, parser):
                     binascii.a2b_hex(secret)
                     section[KEY_URL_AUTH_SECRET] = secret
                 except TypeError:
-                    _logger.error('skipping config option %s because it is not a valid hex string' % KEY_URL_AUTH_SECRET)
+                    _logger.error('skipping config option %s because it is not a valid hex '
+                                  'string' % KEY_URL_AUTH_SECRET)
 
         # parse secret and assign only if valid hex ascii string
         with supress(NoOptionError):
@@ -135,7 +136,8 @@ def read_config(app, parser):
                 if algo in VALID_AUTH_ALGO:
                     section[KEY_URL_AUTH_ALGO] = algo
                 else:
-                    _logger.error('value for config option %s is not a valid choice. falling back to default' % KEY_URL_AUTH_ALGO)
+                    _logger.error('value for config option %s is not a valid choice. falling back '
+                                  'to default' % KEY_URL_AUTH_ALGO)
 
     # "gsa" (Google Search Appliance) section settings
     with supress(NoSectionError):

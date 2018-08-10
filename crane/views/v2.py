@@ -9,7 +9,7 @@ from flask import Blueprint, json, current_app, redirect, request
 from crane import app_util, exceptions, config
 from crane.api import repository
 
-log = logging.getLogger('__name__')
+log = logging.getLogger(__name__)
 section = Blueprint('v2', __name__, url_prefix='/v2')
 
 

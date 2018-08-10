@@ -21,11 +21,12 @@ v2_response_data = {
     'repos': {}
 }
 
-V1Repo = namedtuple('V1Repo', ['url', 'images_json', 'tags_json', 'url_path', 'protected'])
-V2Repo = namedtuple('V2Repo', ['url', 'url_path', 'protected'])
-V3Repo = namedtuple('V3Repo', ['url', 'url_path', 'schema2_data', 'protected'])
-V4Repo = namedtuple('V4Repo', ['url', 'url_path', 'schema2_data', 'manifest_list_data',
-                               'manifest_list_amd64_tags', 'protected'])
+V1Repo = namedtuple('V1Repo', ['url', 'repository', 'images_json', 'tags_json',
+                               'url_path', 'protected'])
+V2Repo = namedtuple('V2Repo', ['url', 'repository', 'url_path', 'protected'])
+V3Repo = namedtuple('V3Repo', ['url', 'repository', 'url_path', 'schema2_data', 'protected'])
+V4Repo = namedtuple('V4Repo', ['url', 'repository', 'url_path', 'schema2_data',
+                               'manifest_list_data', 'manifest_list_amd64_tags', 'protected'])
 
 
 def load_from_file(path):
@@ -51,26 +52,31 @@ def load_from_file(path):
 
     repo_id = repo_data['repo-registry-id']
     url_path = urlparse.urlparse(repo_data['url']).path
+    repository = repo_data['repository']
 
     if repo_data['version'] == 1:
         image_ids = [image['id'] for image in repo_data['images']]
         repo_tuple = V1Repo(repo_data['url'],
+                            repository,
                             json.dumps(repo_data['images']),
                             json.dumps(repo_data['tags']),
                             url_path, repo_data.get('protected', False))
         return repo_id, repo_tuple, image_ids
     elif repo_data['version'] == 2:
         repo_tuple = V2Repo(repo_data['url'],
+                            repository,
                             url_path, repo_data.get('protected', False))
         return repo_id, repo_tuple, None
     elif repo_data['version'] == 3:
         repo_tuple = V3Repo(repo_data['url'],
+                            repository,
                             url_path,
                             json.dumps(repo_data['schema2_data']),
                             repo_data.get('protected', False))
         return repo_id, repo_tuple, None
     elif repo_data['version'] == 4:
         repo_tuple = V4Repo(repo_data['url'],
+                            repository,
                             url_path,
                             json.dumps(repo_data['schema2_data']),
                             json.dumps(repo_data['manifest_list_data']),
@@ -94,6 +100,7 @@ def monitor_data_dir(app, last_modified=0):
     polling_interval = app.config[config.KEY_DATA_POLLING_INTERVAL]
     if not os.path.exists(data_dir):
         logger.error('The data directory specified does not exist: %s' % data_dir)
+
     while True:
         # Find all the subdirectories
         dirs = [dirpath for (dirpath, _, _) in os.walk(data_dir,

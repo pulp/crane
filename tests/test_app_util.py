@@ -282,6 +282,7 @@ class TestValidateGetRepositories(unittest.TestCase):
     @mock.patch('crane.app_util.get_data')
     def test_get_repositories(self, mock_get_data):
         repo = V1Repo(url="",
+                      repository="test-repo",
                       images_json="[{\"id\": \"test-image1\"}, {\"id\": \"test-image2\"}]",
                       tags_json="{\"tag1\": \"test-image1\"}",
                       url_path="",
@@ -303,8 +304,8 @@ class TestValidateGetV2Repositories(unittest.TestCase):
 
     @mock.patch('crane.app_util.get_v2_data')
     def test_get_v2_repositories(self, mock_get_v2_data):
-        repo = V2Repo(url="", url_path="", protected=True)
-        repo2 = V3Repo(url="", url_path="", schema2_data=[], protected=False)
+        repo = V2Repo(url="", repository="", url_path="", protected=True)
+        repo2 = V3Repo(url="", repository="", url_path="", schema2_data=[], protected=False)
         mock_get_v2_data.return_value = {'repos': {'test-repo': repo, 'test-repo2': repo2}}
         ret = app_util.get_v2_repositories()
         self.assertEqual(ret['test-repo']['protected'], True)

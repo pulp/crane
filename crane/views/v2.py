@@ -60,14 +60,15 @@ def name_redirect(relative_path):
     :return:    302 redirect response
     :rtype:     flask.Response
     """
-    name_component, path_component = app_util.validate_and_transform_repo_name(relative_path)
+    components = app_util.validate_and_transform_repo_name(relative_path)
+    name_component, path_component, component_type = components
     base_url = repository.get_path_for_repo(name_component)
     if not base_url.endswith('/'):
         base_url += '/'
 
     schema2_data = repository.get_schema2_data_for_repo(name_component)
 
-    if 'manifests' in path_component and schema2_data is not None:
+    if component_type == 'manifests' and schema2_data is not None:
         manifest_list_data = repository.get_manifest_list_data_for_repo(name_component)
         manifest_list_amd64_tags = repository.get_manifest_list_amd64_for_repo(name_component)
         if schema2_data:

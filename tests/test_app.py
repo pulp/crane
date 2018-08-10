@@ -84,3 +84,18 @@ class TestSetLogLevel(unittest2.TestCase):
 
         # make sure it did not change the log level
         self.assertEqual(mock_set_level.call_count, 0)
+
+
+class TestSendFileCacheTimeout(unittest2.TestCase):
+    def setUp(self):
+        super(TestSendFileCacheTimeout, self).setUp()
+        self.app = app.create_app()
+
+    def test_short_cache_timeout(self):
+        max_age = self.app.get_send_file_max_age('/var/www/pub/docker/v2/web/repo/tags/list')
+        self.assertEqual(max_age, self.app.config[config.KEY_DATA_POLLING_INTERVAL])
+
+    @mock.patch.object(Flask, 'get_send_file_max_age', return_value=-1)
+    def test_long_cache_timeout(self, mock_flask_max_age):
+        self.app.get_send_file_max_age('/var/www/pub/docker/v2/web/repo/manifests/2/sha256:d59969bd6f4eb748dab218f5914993d3f6621a95bd4515982f5311d2a63fd3a0') # noqa
+        self.assertEqual(mock_flask_max_age.call_count, 1)

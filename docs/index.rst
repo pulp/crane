@@ -2,9 +2,14 @@ What is Crane?
 --------------
 
 Crane is a small read-only web application that provides enough of the docker
-registry API to support "docker pull". Crane does not serve the actual image
-files, but instead serves 302 redirects to some other location where files are
-being served. A base file location URL can be specified per-repository.
+registry API to support "docker pull". Crane supports two modes of operation:
+
+1.  Serve 302 redirects to some other location where files are
+    being served. A base file location URL can be specified per-repository.
+    This is the default mode.
+2.  serve content delivery. In this mode, Crane provides "X-Sendfile" headers
+    to the Apache web server. Apache will deliver the static files including
+    all its optimizations.
 
 Crane loads its data from json files stored on disk. It does not have a
 database or use any other services. The json files can be generated with Pulp
@@ -276,41 +281,146 @@ responds with JSON. Here is an example of repository with v1 content:
     }
 
 
-User Authentication
--------------------
+Serve Content Locally & User Authentication
+-------------------------------------------
 
-Basic username/passphrase authentication may be configured using standard Apache configuration.
-End-users access images by client command ``docker login <crane-registry-uri>``. End-users who
-``docker pull <image>`` before logging in will be prompted for username/passphrase.
+Instead of serving redirects, Crane is also able to serve content that resides
+on a local filesystem. For example, this mode can be used when Pulp and Crane
+run on the same server (or if they run on different servers that share a
+filesystem).
+
+Crane does not deliver the content directly, but provides an "X-Sendfile" header
+to the Apache web server. Therefore, the 'mod_xsendfile' Apache module must
+be installed and Apache must be configured accordingly (see below).
+
+This mode allows to configure basic username/passphrase authentication using
+standard Apache configuration.
+
+Serve Content Locally
+~~~~~~~~~~~~~~~~~~~~~
+
+To configure Crane to serve content locally, the following options should go
+under a section named ``[serve_content]``:
+
+enable
+  ``true`` or ``false``. Put Crane into "serve content" mode when ``true``.
+  Defaults to ``false``, i.e. Crane uses 302 redirects by default.
+
+content_dir_v1:
+  full path to the directory from which images should be served for Docker
+  clients using the 'v1' API. Defaults to ``/var/www/pub/docker/v1/web/``,
+  which is the default web publisher location used by Pulp.
+
+content_dir_v2:
+  full path to the directory from which images should be served for Docker
+  clients using the 'v2' API. Defaults to ``/var/www/pub/docker/v2/web/``,
+  which is the default web publisher location used by Pulp.
+
+use_x_sendfile:
+  ``true`` or ``false``. Defaults to ``true``. This option is only used for
+  development. Setting it to ``false`` lets Flask's built-in web server deliver
+  the content directly.
+
+Example:
+
+.. code-block:: cfg
+
+  [general]
+  debug: true
+  data_dir: /var/www/pub/docker/
+  endpoint: localhost:5000
+
+  [serve_content]
+  enable: true
+
+
+Apache 2.4 should be configured like this:
+
+.. code-block:: apacheconf
+
+  <VirtualHost *:5000>
+      WSGIScriptAlias / /usr/share/crane/crane.wsgi
+      <Location /crane>
+          Require host localhost
+      </Location>
+      <Location /v2/>
+          Require all granted
+          XSendFile on
+          XSendFilePath /var/www/pub/docker/v2/web/
+      </Location>
+      <Location /v1/>
+          Require all granted
+          XSendFile on
+          XSendFilePath /var/www/pub/docker/v1/web/
+      </Location>
+      <Directory /usr/share/crane/>
+          Require all granted
+      </Directory>
+  </VirtualHost>
+
+.. Note::
+
+   Ensure that Apache is listening on port 5000.
+
+User Authentication
+~~~~~~~~~~~~~~~~~~~
+
+"Serve content" mode allows to configure basic username/passphrase authentication
+using standard Apache configuration.
+
+.. Note::
+
+    Configuration of username/passphrase authentication is also possible in
+    redirection mode, but the Docker client will not use authentication for the
+    redirection targets. Consequently, the actual content must be accessible
+    without authentication, rendering this option less secure.
+
+End-users access images by client command ``docker login <crane-registry-uri>``.
+End-users who ``docker pull <image>`` before logging in will get the error
+"unauthorized: authentication required".
 
 Crane does not manage users. They must be managed with an ``.htpasswd`` file. The ``htpasswd``
 tool is available to manage the ``.htpasswd`` file. See `Apache htpasswd documentation <http://httpd.apache.org/docs/current/programs/htpasswd.html>`_.
 
-Configuration may be enabled through an Apache config or ``.htaccess`` file. See `Apache htaccess documentation <https://httpd.apache.org/docs/current/howto/htaccess.html>`_.
+Configuration may be enabled through an Apache config. See `Apache htaccess documentation <https://httpd.apache.org/docs/current/howto/htaccess.html>`_.
 
-Example ``.htaccess`` file:
+Example ``/etc/apache/conf.d/pulp_crane.conf`` file:
 
-.. code-block:: none
+.. code-block:: apacheconf
 
-    AuthType Basic
-    AuthName "Authentication Required"
-    AuthUserFile /path/to/.htpasswd
-    Require valid-user
+  <VirtualHost *:5000>
+      WSGIScriptAlias / /usr/share/crane/crane.wsgi
+      <Location /crane>
+          Require host localhost
+      </Location>
+      <Location /v2/>
+          AuthType Basic
+          AuthName "Docker Registry Repository"
+          AuthUserFile /path/to/.htpasswd
+          Require valid-user
+          XSendFile on
+          XSendFilePath /var/www/pub/docker/v2/web/
+      </Location>
+      <Location /v1/>
+          AuthType Basic
+          AuthName "Docker Registry Repository"
+          AuthUserFile /path/to/.htpasswd
+          Require valid-user
+          XSendFile on
+          XSendFilePath /var/www/pub/docker/v1/web/
+      </Location>
+      <Directory /usr/share/crane/>
+          Require all granted
+      </Directory>
+  </VirtualHost>
 
-Example ``apache.conf`` file:
+.. Note::
 
-.. code-block:: none
-
-    <VirtualHost *>
-        WSGIScriptAlias / /usr/share/crane/crane.wsgi
-        <Location /crane>
-            Require host localhost
-            AuthType Basic
-            AuthName "Docker Registry Repository"
-            AuthUserFile /path/to/.htpasswd
-            Require valid-user
-        </Location>
-    </VirtualHost>
+   By default, the Docker content published by Pulp is made available on port
+   443 by the Apache configuration of Pulp's Docker plugin at
+   ``/etc/httpd/conf.d/pulp_docker.conf`` . When using Crane & Pulp on the same
+   server with authentication, you should add authentication to the directories
+   specified in this file as well.
 
 
 Release Notes

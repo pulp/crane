@@ -3,7 +3,7 @@ import json
 from tests.views import base
 
 
-class TestPath(base.BaseCraneAPITest):
+class Common404CasesMixin(object):
     def test_invalid_repo_name(self):
         response = self.test_client.get('/v2/no/name/test')
         parsed_response_data = json.loads(response.data)
@@ -12,6 +12,18 @@ class TestPath(base.BaseCraneAPITest):
         self.assertTrue(response.headers['Content-Type'].startswith('application/json'))
         self.assertEqual(parsed_response_data['errors'][0]['code'], '404')
         self.assertEqual(parsed_response_data['errors'][0]['message'], 'Not Found')
+
+    def test_repo_name_without_manifest_or_tags_or_blobs(self):
+        response = self.test_client.get('/v2/foo/test')
+        parsed_response_data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(response.headers['Content-Type'].startswith('application/json'))
+        self.assertEqual(parsed_response_data['errors'][0]['code'], '404')
+        self.assertEqual(parsed_response_data['errors'][0]['message'], 'Not Found')
+
+
+class TestPathRedirect(base.BaseCraneAPITest, Common404CasesMixin):
 
     def test_valid_repo_name_for_manifest(self):
         # #3303: verify multi-valued headers too
@@ -76,11 +88,41 @@ class TestPath(base.BaseCraneAPITest):
         self.assertTrue(response.headers['Content-Type'].startswith('text/html'))
         self.assertTrue('/registry/blobs/123' in response.headers['Location'])
 
-    def test_repo_name_without_manifest_or_tags_or_blobs(self):
-        response = self.test_client.get('/v2/foo/test')
-        parsed_response_data = json.loads(response.data)
 
+class TestPathServeContent(base.BaseCraneAPITestServeContent, Common404CasesMixin):
+
+    def test_valid_repo_name_for_manifest_list(self):
+        content_type = 'application/vnd.docker.distribution.manifest.list.v2+json'
+        headers = {'Accept': content_type}
+        response = self.test_client.get('/v2/redhat/zoo/manifests/latest', headers=headers)
+        self.verify_200(response, 'zoo/manifests/list/latest', content_type)
+
+    def test_valid_repo_name_for_manifest_digest_schema_1(self):
+        content_type = 'application/vnd.docker.distribution.manifest.v2+json'
+        headers = {'Accept': content_type}
+        response = self.test_client.get('/v2/redhat/zoo/manifests/latest', headers=headers)
+        self.verify_200(response,
+                        'zoo/manifests/1/sha256:c55544de64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf', # noqa
+                        'application/json')
+
+    def test_valid_repo_name_for_manifest_digest_schema_2(self):
+        content_type = 'application/vnd.docker.distribution.manifest.v2+json'
+        headers = {'Accept': content_type}
+        response = self.test_client.get('/v2/redhat/zoo/manifests/bar', headers=headers)
+        self.verify_200(response,
+                        'zoo/manifests/2/sha256:c55544de64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf', # noqa
+                        content_type)
+
+    def test_valid_repo_name_for_blobs(self):
+        response = self.test_client.get('/v2/redhat/zoo/blobs/sha256:c55544de64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf') # noqa
+        self.verify_200(response,
+                        'zoo/blobs/sha256:c55544de64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf', # noqa
+                        'application/octet-stream')
+
+    def test_valid_repo_name_but_invalid_blob(self):
+        response = self.test_client.get('/v2/redhat/zoo/blobs/sha256:deadbeef64a01e157b9d931f5db7a16554a14be19c367f91c9a8cdc46db086bf') # noqa
         self.assertEqual(response.status_code, 404)
         self.assertTrue(response.headers['Content-Type'].startswith('application/json'))
+        parsed_response_data = json.loads(response.data)
         self.assertEqual(parsed_response_data['errors'][0]['code'], '404')
         self.assertEqual(parsed_response_data['errors'][0]['message'], 'Not Found')

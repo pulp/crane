@@ -4,7 +4,7 @@ import logging
 import os
 import urlparse
 import time
-from flask import Blueprint, json, current_app, redirect, request
+from flask import Blueprint, json, current_app, redirect, request, send_file
 
 from crane import app_util, exceptions, config
 from crane.api import repository
@@ -18,8 +18,8 @@ def add_common_headers(response):
     """
     Add headers to a response.
 
-    All 200 responses get a content type of 'application/json', and all others
-    retain their default.
+    All 200 responses get a content type of 'application/json' if no other content type was set,
+    and all others retain their default.
 
     Headers are added to make this app look like the actual docker-registry.
 
@@ -29,9 +29,12 @@ def add_common_headers(response):
     :return:    a response object that has the correct headers
     :rtype:     flask.Response
     """
-    # if response code is 200, assume it is JSON
     if response.status_code == 200:
-        response.headers['Content-Type'] = 'application/json'
+        # Set default content type to 'application/json' if response code is 200 and
+        # content type isn't already set explicitly
+        content_type = response.headers.get('Content-Type', '')
+        if not content_type.startswith('application/'):
+            response.headers['Content-Type'] = 'application/json'
         response.headers['Docker-Distribution-API-Version'] = 'registry/2.0'
     return response
 
@@ -50,9 +53,11 @@ def v2():
 
 
 @section.route('/<path:relative_path>')
-def name_redirect(relative_path):
+def name_serve_or_redirect(relative_path):
     """
     Redirects the client to the path from where the file can be accessed.
+    If 'serve_content' is set to true use send_file to provide the requested file directly,
+    taking into account the 'content_dir_v2' parameter.
 
     :param relative_path: the relative path after /v2/.
     :type relative_path:  basestring
@@ -65,8 +70,8 @@ def name_redirect(relative_path):
     base_url = repository.get_path_for_repo(name_component)
     if not base_url.endswith('/'):
         base_url += '/'
-
     schema2_data = repository.get_schema2_data_for_repo(name_component)
+    used_mediatype = 'application/json' if component_type != 'blobs' else 'application/octet-stream'
 
     if component_type == 'manifests' and schema2_data is not None:
         manifest_list_data = repository.get_manifest_list_data_for_repo(name_component)
@@ -87,11 +92,15 @@ def name_redirect(relative_path):
             # check first manifest list type
             if manifest_list_mediatype in accept_headers and identifier in manifest_list_data:
                 path_component = os.path.join(manifest, 'list', identifier)
+                used_mediatype = manifest_list_mediatype
             # this is needed for older clients which do not understand manifest list
             elif identifier in manifest_list_amd64_tags.keys():
                 if schema2_mediatype in accept_headers:
+                    schema_version = manifest_list_amd64_tags[identifier][1]
+                    if schema_version == 2:
+                        used_mediatype = schema2_mediatype
                     path_component = os.path.join(
-                        manifest, str(manifest_list_amd64_tags[identifier][1]),
+                        manifest, str(schema_version),
                         manifest_list_amd64_tags[identifier][0])
                 elif manifest_list_amd64_tags[identifier][1] == 1:
                     path_component = os.path.join(
@@ -102,18 +111,31 @@ def name_redirect(relative_path):
                     path_component = os.path.join(manifest, '1', identifier)
             elif schema2_mediatype in accept_headers and identifier in schema2_data:
                 path_component = os.path.join(manifest, '2', identifier)
+                used_mediatype = schema2_mediatype
             else:
                 path_component = os.path.join(manifest, '1', identifier)
         # this is needed for V3Repo which do not have schema2 manifests
         else:
             path_component = os.path.join(manifest, '1', identifier)
-    url = base_url + path_component
 
-    # perform CDN rewrites and auth
-    url = cdn_rewrite_redirect_url(url)
-    url = cdn_auth_token_url(url)
+    serve_content = current_app.config.get(config.KEY_SC_ENABLE)
+    if serve_content:
+        base_path = current_app.config.get(config.KEY_SC_CONTENT_DIR_V2)
+        repo_name = repository.get_pulp_repository_name(name_component)
+        result = os.path.join(base_path, repo_name, path_component)
 
-    return redirect(url)
+        try:
+            return send_file(result, mimetype=used_mediatype,
+                             add_etags=False)
+        except OSError:
+            raise exceptions.HTTPError(httplib.NOT_FOUND)
+    else:
+        url = base_url + path_component
+
+        # perform CDN rewrites and auth
+        url = cdn_rewrite_redirect_url(url)
+        url = cdn_auth_token_url(url)
+        return redirect(url)
 
 
 @section.errorhandler(exceptions.HTTPError)

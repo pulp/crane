@@ -1,13 +1,12 @@
 import httplib
 
-from flask import Blueprint, json, current_app, redirect, request
+from flask import Blueprint, json, current_app, redirect, request, send_file
 
 from .. import app_util
 from .. import config
 from .. import exceptions
 from ..api import repository, images
 from .. import search as search_package
-
 
 section = Blueprint('v1', __name__, url_prefix='/v1')
 
@@ -17,8 +16,8 @@ def add_common_headers(response):
     """
     Add headers to a response.
 
-    All 200 responses get a content type of 'application/json', and all others
-    retain their default.
+    All 200 responses get a content type of 'application/json' if no other content type was set,
+    and all others retain their default.
 
     Headers are added to make this app look like the actual docker-registry.
 
@@ -28,8 +27,10 @@ def add_common_headers(response):
     :return:    a response object that has the correct headers
     :rtype:     flask.Response
     """
-    # if response code is 200, assume it is JSON
-    if response.status_code == 200:
+    # Set default content type to 'application/json' if response code is 200 and
+    # content type isn't already set explicitly
+    content_type = response.headers.get('Content-Type', '')
+    if response.status_code == 200 and not content_type.startswith('application/'):
         response.headers['Content-Type'] = 'application/json'
     # current stable release of docker-registry
     response.headers['X-Docker-Registry-Version'] = '0.6.6'
@@ -166,9 +167,11 @@ def search():
 
 
 @section.route('/images/<image_id>/<filename>')
-def images_redirect(image_id, filename):
+def images_serve_or_redirect(image_id, filename):
     """
     Redirects (302) the client to a path where it can access the requested file.
+    If 'serve_content' is set to true use send_file to provide the requested file directly,
+    taking into account the 'content_dir_v1' parameter.
 
     :param image_id:    the full unique ID of a docker image
     :type  image_id:    basestring
@@ -178,5 +181,14 @@ def images_redirect(image_id, filename):
     :return:    302 redirect response
     :rtype:     flask.Response
     """
-    image_url = images.get_image_file_url(image_id, filename)
-    return redirect(image_url)
+    serve_content = current_app.config.get(config.KEY_SC_ENABLE)
+
+    if serve_content:
+        image, mimetype = images.get_image_file_path(image_id, filename)
+        try:
+            return send_file(image, mimetype=mimetype)
+        except OSError:
+            raise exceptions.HTTPError(httplib.NOT_FOUND)
+    else:
+        image_url = images.get_image_file_url(image_id, filename)
+        return redirect(image_url)

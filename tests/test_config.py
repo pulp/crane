@@ -11,6 +11,7 @@ basepath = os.path.dirname(__file__)
 
 gsa_config_path = os.path.join(basepath, 'data/gsa/crane.conf')
 solr_config_path = os.path.join(basepath, 'data/solr/crane.conf')
+serve_content_path = os.path.join(basepath, 'data/serve_content/')
 
 
 class TestLoad(unittest.TestCase):
@@ -29,6 +30,11 @@ class TestLoad(unittest.TestCase):
         self.assertTrue(self.app.config.get('DEBUG') is False)
         self.assertEqual(self.app.config.get(config.KEY_DATA_DIR), '/var/lib/crane/metadata/')
         self.assertEqual(self.app.config.get(config.KEY_ENDPOINT), '')
+        self.assertTrue(self.app.config.get(config.KEY_SC_ENABLE) is False)
+        self.assertEqual(self.app.config.get(config.KEY_SC_CONTENT_DIR_V1),
+                         '/var/www/pub/docker/v1/web/')
+        self.assertEqual(self.app.config.get(config.KEY_SC_CONTENT_DIR_V2),
+                         '/var/www/pub/docker/v2/web/')
         self.assertEqual(self.app.config.get(config.KEY_DATA_POLLING_INTERVAL), 60)
         configured_gsa_url = self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL)
         self.assertEqual(configured_gsa_url, '')
@@ -50,6 +56,39 @@ class TestLoad(unittest.TestCase):
 
         self.assertEqual(self.app.config.get(config.SECTION_GSA, {}).get(config.KEY_URL),
                          'http://foo/bar')
+
+    @mock.patch('os.environ.get',
+                new={config.CONFIG_ENV_NAME: os.path.join(serve_content_path, 'crane.conf')}.get,
+                spec_set=True)
+    @mock.patch('os.path.exists', return_value=True, spec_set=True)
+    @mock.patch.object(config._logger, 'error', spec_set=True)
+    def test_serve_content(self, mock_error, mock_path):
+        config.load(self.app)
+        self.assertEqual(mock_error.call_count, 0)
+        self.assertTrue(self.app.config.get(config.KEY_SC_ENABLE) is True)
+
+    @mock.patch('os.environ.get',
+                new={config.CONFIG_ENV_NAME: os.path.join(serve_content_path,
+                                                          'crane_no_path.conf')}.get,
+                spec_set=True)
+    @mock.patch('os.path.exists', return_value=True, spec_set=True)
+    @mock.patch.object(config._logger, 'error', spec_set=True)
+    def test_serve_content_no_content_path(self, mock_error, mock_path):
+        config.load(self.app)
+        # make sure an error was logged and serve content is disabled
+        self.assertEqual(mock_error.call_count, 1)
+        self.assertTrue(self.app.config.get(config.KEY_SC_ENABLE) is False)
+
+    @mock.patch('os.environ.get',
+                new={config.CONFIG_ENV_NAME: os.path.join(serve_content_path, 'crane.conf')}.get,
+                spec_set=True)
+    @mock.patch('os.path.exists', return_value=False, spec_set=True)
+    @mock.patch.object(config._logger, 'error', spec_set=True)
+    def test_serve_content_invalid_content_path(self, mock_error, mock_path):
+        config.load(self.app)
+        # make sure an error was logged and serve content is disabled
+        self.assertEqual(mock_error.call_count, 1)
+        self.assertTrue(self.app.config.get(config.KEY_SC_ENABLE) is False)
 
     @mock.patch('pkg_resources.resource_stream', side_effect=IOError, spec_set=True)
     def test_defaults_not_found(self, mock_resource_stream):

@@ -11,9 +11,14 @@ What is Crane?
 --------------
 
 Crane is a small read-only web application that provides enough of the docker
-registry API to support "docker pull". Crane does not serve the actual image
-files, but instead serves 302 redirects to some other location where files are
-being served. A base file location URL can be specified per-repository.
+registry API to support "docker pull". Crane supports two modes of operation:
+
+1.  Serve 302 redirects to some other location where files are
+    being served. A base file location URL can be specified per-repository.
+    This is the default mode.
+2.  Local content delivery. In this mode, Crane provides "X-Sendfile" headers
+    to the Apache web server. Apache will deliver the static files including
+    all its optimizations.
 
 Crane loads its data from json files stored on disk. It does not have a
 database or use any other services. The json files can be generated with pulp

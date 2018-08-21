@@ -78,6 +78,18 @@ def get_manifest_list_data_for_repo(repo_id):
     return manifest_list_data
 
 
+def get_pulp_repository_name(repo_id):
+    """
+    Return the name used in pulp for the repository.
+
+    :param repo_id: The identifier/name for the repository
+    :type repo_id: basestring
+    :returns: the pulp repository name
+    :rtype: string
+    """
+    return get_v2_data()['repos'][repo_id].repository
+
+
 @authorize_name
 def get_manifest_list_amd64_for_repo(repo_id):
     """

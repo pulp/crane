@@ -297,23 +297,22 @@ def validate_and_transform_repo_name(path):
     :param path: value for full path component containing both repo name and file path
     :type path: basestring
 
-    :return: tuple containing extracted name and path components
+    :return: tuple containing extracted name, path components and the identified component type
     :rtype: tuple
     """
 
-    path_components = ['tags', 'manifests', 'blobs']
-    name_component = ''
-    path_component = ''
+    component_types = ['tags', 'manifests', 'blobs']
 
-    if not any([value in path for value in path_components]):
-        raise exceptions.HTTPError(httplib.NOT_FOUND)
+    components = path.split('/')
 
-    for component in path_components:
-        if component in path:
-            name_component = path.split(component, 1)[0].strip('/')
-            path_component = component + path.split(component, 1)[1]
+    for rindex, component in enumerate(reversed(components)):
+        if component in component_types:
+            split_index = len(components) - 1 - rindex
+            name_component = '/'.join(components[:split_index])
+            path_component = '/'.join(components[split_index:])
+            return name_component, path_component, component
 
-    return name_component, path_component
+    raise exceptions.HTTPError(httplib.NOT_FOUND)
 
 
 def generate_cdn_url_token(path, secret, expiration, algorithm):

@@ -247,9 +247,29 @@ class TestValidateAndTransformRepoID(unittest.TestCase):
 class TestValidateAndTransformRepoName(unittest.TestCase):
 
     def test_normal(self):
-        name, path = app_util.validate_and_transform_repo_name('redhat/rhel7.0/tags/latest')
+        name, path, component = app_util.validate_and_transform_repo_name('redhat/rhel7.0/tags/latest') # noqa
         self.assertEqual(name, 'redhat/rhel7.0')
         self.assertEqual(path, 'tags/latest')
+        self.assertEqual(component, 'tags')
+
+    def test_funny_image_names(self):
+        for image_name in ['tags', 'manifests', 'blobs']:
+            for component_type in ['tags', 'manifests', 'blobs']:
+                full_path = 'redhat/%s/%s/latest' % (image_name, component_type)
+                name, path, component = app_util.validate_and_transform_repo_name(full_path)
+                msg = 'Full path: ' + full_path
+                self.assertEqual(name, 'redhat/' + image_name, msg=msg)
+                self.assertEqual(path, component_type + '/latest', msg=msg)
+                self.assertEqual(component, component_type, msg=msg)
+
+    def test_boundary_conditions(self):
+        """Ensure that no exception happens in boundary cases"""
+        components = app_util.validate_and_transform_repo_name('tags')
+        self.assertEqual(components, ('', 'tags', 'tags'))
+        components = app_util.validate_and_transform_repo_name('tags/')
+        self.assertEqual(components, ('', 'tags/', 'tags'))
+        components = app_util.validate_and_transform_repo_name('/tags')
+        self.assertEqual(components, ('', 'tags', 'tags'))
 
     def test_path_without_tags_or_manifest_or_blobs(self):
         with self.assertRaises(exceptions.HTTPError) as assertion:
@@ -262,6 +282,7 @@ class TestValidateGetRepositories(unittest.TestCase):
     @mock.patch('crane.app_util.get_data')
     def test_get_repositories(self, mock_get_data):
         repo = V1Repo(url="",
+                      repository="test-repo",
                       images_json="[{\"id\": \"test-image1\"}, {\"id\": \"test-image2\"}]",
                       tags_json="{\"tag1\": \"test-image1\"}",
                       url_path="",
@@ -283,8 +304,8 @@ class TestValidateGetV2Repositories(unittest.TestCase):
 
     @mock.patch('crane.app_util.get_v2_data')
     def test_get_v2_repositories(self, mock_get_v2_data):
-        repo = V2Repo(url="", url_path="", protected=True)
-        repo2 = V3Repo(url="", url_path="", schema2_data=[], protected=False)
+        repo = V2Repo(url="", repository="", url_path="", protected=True)
+        repo2 = V3Repo(url="", repository="", url_path="", schema2_data=[], protected=False)
         mock_get_v2_data.return_value = {'repos': {'test-repo': repo, 'test-repo2': repo2}}
         ret = app_util.get_v2_repositories()
         self.assertEqual(ret['test-repo']['protected'], True)

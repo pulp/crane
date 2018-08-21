@@ -1,5 +1,6 @@
 import logging
 import sys
+import os.path
 
 from flask import Flask
 
@@ -11,6 +12,14 @@ from crane import app_util
 from crane import search
 
 
+class CraneFlask(Flask):
+    def get_send_file_max_age(self, filepath):
+        # Shorten the cache timeout if the file is not content adressable
+        if os.path.basename(filepath).startswith('sha256:'):
+            return super(CraneFlask, self).get_send_file_max_age(filepath)
+        return self.config[config.KEY_DATA_POLLING_INTERVAL]
+
+
 def create_app():
     """
     Creates the flask app, loading blueprints and the configuration.
@@ -20,13 +29,14 @@ def create_app():
     """
     init_logging()
 
-    app = Flask(__name__)
+    app = CraneFlask(__name__)
     app.register_blueprint(v1.section)
     app.register_blueprint(v2.section)
     app.register_blueprint(crane.section)
     app.register_error_handler(exceptions.HTTPError, app_util.http_error_handler)
 
     config.load(app)
+
     # in case the config says that debug mode is on, we need to adjust the
     # log level
     set_log_level(app)

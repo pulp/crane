@@ -36,6 +36,13 @@ KEY_URL_AUTH_TTL = 'url_auth_ttl'
 KEY_URL_AUTH_ALGO = 'url_auth_algo'
 VALID_AUTH_ALGO = ["sha256", "sha1", "md5"]
 
+# serve content settings
+SECTION_SERVE_CONTENT = 'serve_content'
+KEY_SC_ENABLE = 'enable'
+KEY_SC_CONTENT_DIR_V1 = 'content_dir_v1'
+KEY_SC_CONTENT_DIR_V2 = 'content_dir_v2'
+KEY_SC_USE_X_SENDFILE = 'use_x_sendfile'
+
 # google search appliance settings
 SECTION_GSA = 'gsa'
 SECTION_SOLR = 'solr'
@@ -90,12 +97,10 @@ def read_config(app, parser):
     # "general" section settings
     with supress(NoSectionError):
         app.config['DEBUG'] = parser.getboolean(SECTION_GENERAL, KEY_DEBUG)
-
         # parse other "general" section values
         for key in (KEY_DATA_DIR, KEY_ENDPOINT):
             with supress(NoOptionError):
                 app.config[key] = parser.get(SECTION_GENERAL, key)
-
         # parse "general" section values as integers
         for key in (KEY_DATA_POLLING_INTERVAL, ):
             with supress(NoOptionError):
@@ -138,6 +143,26 @@ def read_config(app, parser):
                 else:
                     _logger.error('value for config option %s is not a valid choice. falling back '
                                   'to default' % KEY_URL_AUTH_ALGO)
+
+    # "serve_content" section settings
+    with supress(NoSectionError):
+        with supress(NoOptionError):
+            app.config[KEY_SC_ENABLE] = parser.getboolean(SECTION_SERVE_CONTENT, KEY_SC_ENABLE)
+        with supress(NoOptionError):
+            app.config['USE_X_SENDFILE'] = parser.getboolean(SECTION_SERVE_CONTENT,
+                                                             KEY_SC_USE_X_SENDFILE)
+        # local content dir only required if crane should serve content
+        for key_local_content_dir in (KEY_SC_CONTENT_DIR_V1, KEY_SC_CONTENT_DIR_V2):
+            with supress(NoOptionError):
+                app.config[key_local_content_dir] = parser.get(SECTION_SERVE_CONTENT,
+                                                               key_local_content_dir)
+            if app.config[KEY_SC_ENABLE]:
+                if not app.config[key_local_content_dir]:
+                    _logger.error('"serve_content" enabled in config, but no "%s" given, disabling the serve content feature!' % key_local_content_dir) # noqa
+                    app.config[KEY_SC_ENABLE] = False
+                elif not os.path.exists(app.config[key_local_content_dir]):
+                    _logger.error('The directory specified by "%s" does not exist: "%s". Disabling the serve content feature!' % (key_local_content_dir, app.config[key_local_content_dir])) # noqa
+                    app.config[KEY_SC_ENABLE] = False
 
     # "gsa" (Google Search Appliance) section settings
     with supress(NoSectionError):

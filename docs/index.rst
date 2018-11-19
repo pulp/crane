@@ -426,6 +426,10 @@ Example ``/etc/apache/conf.d/pulp_crane.conf`` file:
 Release Notes
 -------------
 
+3.3.0
+
+The 3.3.0 release of Crane adds an option to serve local content directly.
+
 3.2.0
 
 The 3.2.0 release of Crane adds support for rewriting base URLs of repos to a new location.
